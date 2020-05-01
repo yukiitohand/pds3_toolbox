@@ -198,8 +198,8 @@ function [value] = readLBL_valueElement(value_raw)
 value = rmdq(value_raw);
 
 % convert to a numeric value if that is true
-value_tmp = str2num(value);
-if ~isempty(value_tmp)
+value_tmp = str2double(value);
+if ~isnan(value_tmp)
     value = value_tmp;
 elseif strcmpi(value,'N/A')
     value = NaN;
@@ -212,8 +212,8 @@ else
     if ~isempty(mtch_wUnit)
         value1 = rmdq(mtch_wUnit.value);
         % convert to a numeric value if that is true
-        value_tmp = str2num(value1);
-        if ~isempty(value_tmp)
+        value_tmp = str2double(value1);
+        if ~isnan(value_tmp)
             value1 = value_tmp;
         elseif strcmpi(value1,'N/A')
             value1 = NaN;

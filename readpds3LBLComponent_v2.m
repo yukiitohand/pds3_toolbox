@@ -106,23 +106,6 @@ if ischar(tline) && ~isempty(tline)
                     if all(cellfun(@(x) isnumeric(x),value))
                         value = cell2mat(value);
                     end
-%                     mtch_ROWNUM_TABLE = regexpi(value_ori,ptrn_ROWNUM_TABLE,'names');
-%                     if ~isempty(mtch_ROWNUM_TABLE)
-%                         value_new{1} = rmdq(mtch_ROWNUM_TABLE.filename);
-%                         value_new{2} = mtch_ROWNUM_TABLE.offset;
-%                         t = str2num(value_new{2});
-%                         if ~isempty(t), value_new{2} = t; end
-%                         value = value_new;
-%                     else
-%                         value = strsplit(value,'"\s*,\s*"','DelimiterType','RegularExpression');
-%                         for i=1:length(value)
-%                             t = strtrim(value{i});
-%                             value{i} = rmdq(t);
-%                             t = str2num(value{i});
-%                             if ~isempty(t),value{i} = t; end
-%                         end
-%                     end
-                    
                 else
                     % if double quotation exist on the left
                     mtch_dquoteleft = regexpi(value_ori,ptrn_dquoteleft,'ONCE');
@@ -156,29 +139,6 @@ if ischar(tline) && ~isempty(tline)
                     end
                 end
             end
-            
-%             else
-%                 
-%                 else
-%                     
-%                     else
-%                         mtch_wUnit = regexpi(value_ori,ptrn_withUnit,'names');
-%                         if ~isempty(mtch_wUnit)
-%                             value{1} = rmdq(mtch_wUnit.value);
-%                             t = str2num(value{1});
-%                             if ~isempty(t), value{1} = t; end
-%                             value{2}  = mtch_wUnit.unit;
-%                             isprm = 1;
-%                         else
-%                             value = value_ori;
-%                             t = str2num(value);
-%                             if ~isempty(t), value = t; end
-%                             
-%                             isprm = 1;
-%                         end
-%                     end
-%                 end
-%             end
             isprm = 1;
         else
             if ~isempty(regexpi(tline,ptrn_END,'ONCE'))

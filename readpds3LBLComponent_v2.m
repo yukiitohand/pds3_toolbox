@@ -11,7 +11,6 @@ ptrn_escape = '^[\s]*/\*.*\*/[\s]*$';
 ptrn_array = '\s*(?<element>("[^""]*"|[^,]*))\s*,';
 ptrn_withUnit = '^\s*(?<value>[-]*[\w\."]*)\s*(?<unit>[\<]{1}.*[\>]{1})$';
 ptrn_comment = '\s*(?<value>.*[\S]+)\s*/[*].*[*]/';
-% ptrn_ROWNUM_TABLE = '\s*"(?<filename>[^"]*)"\s*,\s*(?<offset>[0-9]+)\s*';
 ptrn_END = '\s*END\s*$';
 tline = fgetl(fid);
 

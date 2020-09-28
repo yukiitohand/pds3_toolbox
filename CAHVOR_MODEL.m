@@ -7,12 +7,12 @@ classdef CAHVOR_MODEL < handle
     
     properties
         type   % 'CAHVOR' or 'CAHV'
-        C = []
-        A = []
-        H = []
-        V = []
-        O = []
-        R = []
+        C
+        A
+        H
+        V
+        O
+        R
         hc
         vc
         hs
@@ -23,6 +23,8 @@ classdef CAHVOR_MODEL < handle
     
     methods
         function obj = CAHVOR_MODEL(varargin)
+            obj.C = []; obj.A = []; obj.H = []; obj.V = []; obj.O = [];
+            obj.R = [];
             if (rem(length(varargin),2)==1)
                 error('Optional parameters should always go by pairs');
             else

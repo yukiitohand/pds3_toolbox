@@ -14,6 +14,9 @@ function [p_minus_c] = cahv_get_p_minus_c_from_xy_v2(imxy_im_2d,cmmdl)
 %   image coordinate. Each vector is normalized. If the input imxy_im_2d is
 %   a row vector [1 x 2], then the output is also a row vector.
 %
+% Update note
+%   2020.09.11-YI: practical normalization is additionally performed.
+%
 
 if all(size(imxy_im_2d) == [1,2])
     imxy_im_2d = reshape(imxy_im_2d,[],1);
@@ -24,7 +27,8 @@ end
     
 cmmdl_A = cmmdl.A';
 
-if isempty(cmmdl.Hdash)
+if isempty(cmmdl.Hdash) || isempty(cmmdl.Vdash) || isempty(cmmdl.hs)...
+        || isempty(cmmdl.vs) || isempty(cmmdl.hc) || isempty(cmmdl.vc)
     cmmdl.get_image_plane_unit_vectors();
 end 
 
@@ -40,6 +44,9 @@ p_minus_c = cff_A.*cmmdl_A + cff_Hd.*Hdash + cff_Vd.*Vdash;
 % normalization
 nrm_factor = sqrt( cff_A.^2 + cff_Hd.^2 + cff_Vd.^2 );
 p_minus_c = p_minus_c ./ nrm_factor; 
+
+% the theoretical normalization factor sometimes causes small errors.
+p_minus_c = p_minus_c ./ sqrt(sum(p_minus_c.^2,1));
 
 % check the direction
 right_dir = sign(cmmdl.A*p_minus_c);

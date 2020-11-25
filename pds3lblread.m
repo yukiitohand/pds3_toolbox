@@ -1,4 +1,4 @@
-function [lbl_info] = pds3lblread(fpth_lbl)
+function [lbl_info,posend] = pds3lblread(fpth_lbl)
 % read a general pds3 lbl file
 %   Input parameters
 %     fpth_lbl: file path to the label file
@@ -45,6 +45,7 @@ while ~feof(fid) && ~flg_end
     end
 end
 lbl_info.zzz_original_field_names = zzz;
+posend = ftell(fid);
 fclose(fid);
 
 end

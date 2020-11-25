@@ -2,7 +2,8 @@ function [isprm,param,value,param_ori] = readpds3LBLComponent_v2(fid)
 ptrn_line = '^\s*(?<param>([\S[^=]]+[^=]*[\S[^=]]+|[\S[^=]]+))\s*=\s*(?<value>(\S+.*\S+|\S*))\s*$';
 ptrn_dquoteboth = '^\s*"(?<string>[^""]*)"\s*$';
 ptrn_dquoteleft = '^\s*".*$';
-ptrn_braceboth = '^\s*\((?<string>[^\(\)]*)\)\s*$';
+% ptrn_braceboth = '^\s*\((?<string>[^\(\)]*)\)\s*$';
+ptrn_braceboth = '^\s*\((?<string>.*)\)\s*$';
 ptrn_braceleft = '^\s*\(.*$';
 ptrn_curlyleft = '^\s*\{.*$';
 ptrn_curlyboth = '^\s*\{(?<string>[^\{\}]*)\}\s*$';

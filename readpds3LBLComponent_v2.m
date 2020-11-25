@@ -1,5 +1,5 @@
 function [isprm,param,value,param_ori] = readpds3LBLComponent_v2(fid)
-ptrn_line = '^\s*(?<param>([\S[^=]]+[^=]*[\S[^=]]+|[\S[^=]]+))\s*=\s*(?<value>(\S+.*\S+|\S*))\s*$';
+ptrn_line = '^\s*(?<param>([\S[=]]+[=]*[\S[^=]]+|[\S[^=]]+))\s*=\s*(?<value>(\S+.*\S+|\S*))\s*$';
 ptrn_dquoteboth = '^\s*"(?<string>[^""]*)"\s*$';
 ptrn_dquoteleft = '^\s*".*$';
 % ptrn_braceboth = '^\s*\((?<string>[^\(\)]*)\)\s*$';
@@ -22,6 +22,9 @@ if ischar(tline) && ~isempty(tline)
         if ~isempty(mtch_line) % ' param = value '
             param = mtch_line.param;
             param_ori = param;
+            if strcmp(param(1),'^')
+                param = ['POINTER_' param(2:end)];
+            end
             value_orio = mtch_line.value;
             % replace any character that cannot be in the field names are
             % replaced.

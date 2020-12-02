@@ -1,18 +1,15 @@
-classdef CAHVOR_MODEL < handle
-    % CAHVOR CAMERA model class
+classdef CAHV_MODEL < handle
+    % CAHV CAMERA model class
     %  CAHVOR model information stored. You can only have CAHV. 
     %  Properties
-    %   C, A, H, V, O, R: model components. 1x3 vector.
-    %   type: type of the model {'CAHV','CAHVOR'}
+    %   C, A, H, V: model components. 1x3 vector.
     
     properties
-        type   % 'CAHVOR' or 'CAHV'
+        type   %'CAHV'
         C
         A
         H
         V
-        O
-        R
         hc
         vc
         hs

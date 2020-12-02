@@ -35,34 +35,18 @@ classdef CAHV_MODEL < handle
                             obj.H = reshape(varargin{i+1},1,[]);
                         case {'V','VERTICAL'}
                             obj.V = reshape(varargin{i+1},1,[]);
-                        case {'O','OPTICAL'}
-                            if ~isempty(varargin{i+1})
-                                obj.O = reshape(varargin{i+1},1,[]);
-                            end
-                        case {'R','RADIAL'}
-                            if ~isempty(varargin{i+1})
-                                obj.R = reshape(varargin{i+1},1,[]);
-                            end
                         otherwise
                             error('Parameter: %s', varargin{i});   
                     end
                 end
             end
-            if isempty(obj.O) && isempty(obj.R)
-                obj.type = 'CAHV';
-            elseif ~isempty(obj.O) && ~isempty(obj.R)
-                obj.type = 'CAHVOR';
-            else
-                error('Only either of O and R is given');
-            end
+            obj.type = 'CAHV';
         end
         function tf = eq(obj1,obj2)
             if all(obj1.C == obj2.C) ...
                 && all(obj1.A == obj2.A) ...
                 && all(obj1.H == obj2.H) ...
                 && all(obj1.V == obj2.V)
-                ...&& all(obj1.O == obj2.O) ...
-                ...&& all(obj1.R == obj2.R)
                 tf = true;
             else
                 tf = false;
@@ -73,8 +57,6 @@ classdef CAHV_MODEL < handle
                 || (all(obj1.A ~= obj2.A)) ...
                 || (all(obj1.H ~= obj2.H)) ...
                 || (all(obj1.V ~= obj2.V))
-                ...|| (all(obj1.O ~= obj2.O)) ...
-                ...|| (all(obj1.R ~= obj2.R))
                 tf = true;
             else
                 tf = false;

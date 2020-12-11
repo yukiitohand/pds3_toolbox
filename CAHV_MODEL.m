@@ -87,6 +87,10 @@ classdef CAHV_MODEL < handle
             [p_minus_c] = cahv_get_p_minus_c_from_xy_v2(xy,obj);
         end
         
+        function [xy] = get_xy_from_p_minus_c(obj,pmc)
+            [xy] = cahv_get_xy_from_p_minus_c(pmc,obj);
+        end
+        
         function [pmc_h,pmc_v] = get_pmc_FOV(obj,h_range,v_range)
             obj.get_image_plane_unit_vectors();
             pmc_lrtb   = obj.get_p_minus_c_from_xy(...

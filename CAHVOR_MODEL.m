@@ -52,7 +52,7 @@ classdef CAHVOR_MODEL < CAHV_MODEL
             if all(obj1.C == obj2.C) ...
                 && all(obj1.A == obj2.A) ...
                 && all(obj1.H == obj2.H) ...
-                && all(obj1.V == obj2.V)
+                && all(obj1.V == obj2.V) ...
                 && all(obj1.O == obj2.O) ...
                 && all(obj1.R == obj2.R)
                 tf = true;
@@ -64,7 +64,7 @@ classdef CAHVOR_MODEL < CAHV_MODEL
             if (all(obj1.C ~= obj2.C)) ...
                 || (all(obj1.A ~= obj2.A)) ...
                 || (all(obj1.H ~= obj2.H)) ...
-                || (all(obj1.V ~= obj2.V))
+                || (all(obj1.V ~= obj2.V)) ...
                 || (all(obj1.O ~= obj2.O)) ...
                 || (all(obj1.R ~= obj2.R))
                 tf = true;
@@ -94,49 +94,59 @@ classdef CAHVOR_MODEL < CAHV_MODEL
             obj.Vdash = Vdash;
         end
         
-        function [p_minus_c] = get_p_minus_c_from_xy(obj,xy)
+        function [xy] = get_xy_from_pd_minus_c(obj,pdmc)
+            [xy] = cahv_get_xy_from_p_minus_c(pdmc,obj);
+        end
+        
+        function [p_minus_c] = get_pd_minus_c_from_xy(obj,xy)
             [p_minus_c] = cahv_get_p_minus_c_from_xy_v2(xy,obj);
         end
         
-        function [pmc_h,pmc_v] = get_pmc_FOV(obj,h_range,v_range)
-            obj.get_image_plane_unit_vectors();
-            pmc_lrtb   = obj.get_p_minus_c_from_xy(...
-                [ h_range(1) obj.vc    ;
-                  h_range(2) obj.vc    ;
-                  obj.hc     v_range(1);
-                  obj.hc     v_range(2) ]');
-            pmc_h = pmc_lrtb(:,1:2);
-            pmc_v = pmc_lrtb(:,3:4);
-            % pmc_l_vc   = obj.get_p_minus_c_from_xy([h_range(1) obj.vc]);
-            % pmc_r_vc   = obj.get_p_minus_c_from_xy([h_range(2) obj.vc]);
-            % pmc_top_hc = obj.get_p_minus_c_from_xy([obj.hc v_range(1)]);
-            % pmc_btm_hc = obj.get_p_minus_c_from_xy([obj.hc v_range(2)]);
-            % pmc_h = [pmc_l_vc' pmc_r_vc'];
-            % pmc_v = [pmc_top_hc' pmc_btm_hc'];
+        function [p_minus_c] = get_p_minus_c_from_xy(obj,xy)
+            [p_minus_c] = cahvor_get_p_minus_c_from_xy_v2(xy,obj);
         end
         
-        function [fovh,fovv] = get_FOV(obj,h_range,v_range)
-            [pmc_h,pmc_v] = obj.get_pmc_FOV(h_range,v_range);
-            fovl = acos(obj.A*pmc_h(:,1));
-            fovr = acos(obj.A*pmc_h(:,2));
-            fovt = acos(obj.A*pmc_v(:,1));
-            fovb = acos(obj.A*pmc_v(:,2));
+        function [xy_ap] = get_apparent_xy_from_xy(obj,xy)
+            [pmc] = obj.get_p_minus_c_from_xy(xy);
+            [xy_ap] = cahv_get_xy_from_p_minus_c(pmc,obj);
+        end
+        
+        function [] = get_pmc_FOV(obj,h_range,v_range)
+            error('Not defined');
+            % obj.get_image_plane_unit_vectors();
+            % pmc_lrtb   = obj.get_p_minus_c_from_xy(...
+            %     [ h_range(1) obj.vc    ;
+            %       h_range(2) obj.vc    ;
+            %       obj.hc     v_range(1);
+            %       obj.hc     v_range(2) ]');
+            % pmc_h = pmc_lrtb(:,1:2);
+            % pmc_v = pmc_lrtb(:,3:4);
+        end
+        
+        function [] = get_FOV(obj,h_range,v_range)
+            error('Not defined');
+            % [pmc_h,pmc_v] = obj.get_pmc_FOV(h_range,v_range);
+            % fovl = acos(obj.A*pmc_h(:,1));
+            % fovr = acos(obj.A*pmc_h(:,2));
+            % fovt = acos(obj.A*pmc_v(:,1));
+            % fovb = acos(obj.A*pmc_v(:,2));
            
-            fovh = [fovl,fovr];
-            fovv = [fovt;fovb];
+            % fovh = [fovl,fovr];
+            % fovv = [fovt;fovb];
         end
 
-        function [pmc_ul,pmc_ll,pmc_lr,pmc_ur] = get_pmc_FOVvertex(obj,h_range,v_range)
-            obj.get_image_plane_unit_vectors();
-            pmc_ul_counter_clock   = obj.get_p_minus_c_from_xy(...
-                [ h_range(1) v_range(1);
-                  h_range(1) v_range(2);
-                  h_range(2) v_range(1);
-                  h_range(2) v_range(2) ]');
-            pmc_ul = pmc_ul_counter_clock(:,1);
-            pmc_ll = pmc_ul_counter_clock(:,2);
-            pmc_lr = pmc_ul_counter_clock(:,3);
-            pmc_ur = pmc_ul_counter_clock(:,4);
+        function [] = get_pmc_FOVvertex(obj,h_range,v_range)
+            error('Not defined');
+            % obj.get_image_plane_unit_vectors();
+            % pmc_ul_counter_clock   = obj.get_p_minus_c_from_xy(...
+            %     [ h_range(1) v_range(1);
+            %       h_range(1) v_range(2);
+            %       h_range(2) v_range(1);
+            %       h_range(2) v_range(2) ]');
+            % pmc_ul = pmc_ul_counter_clock(:,1);
+            % pmc_ll = pmc_ul_counter_clock(:,2);
+            % pmc_lr = pmc_ul_counter_clock(:,3);
+            % pmc_ur = pmc_ul_counter_clock(:,4);
         end
         
         % function [fovh,fovv] = get_FOV(obj,h_range,v_range)

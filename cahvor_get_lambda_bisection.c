@@ -64,7 +64,7 @@ void get_lambda_bisection(size_t N, double *klam, double *cahvor_R, double *lam)
         // printf("n=%d\n",n);
         c = klam[n];
         xl = 0.0;
-        xr = 1.0;
+        xr = 0.5;
         vl = f(rho0,rho1,rho2,xl,c);
         vr = f(rho0,rho1,rho2,xr,c);
         if(vl<0 && vr>0){
@@ -81,8 +81,21 @@ void get_lambda_bisection(size_t N, double *klam, double *cahvor_R, double *lam)
                 cnt++;
             }
             lam[n] = xm;
-        } else {
-            // printf("something wrong with n=%d\n",n);
+        } else if(vl>0 && vr<0){
+            cnt = 0;
+            while((xr-xl)>tol && cnt<64){
+                // printf("%e\n",(xr-xl));
+                xm = 0.5*(xl+xr);
+                vm = f(rho0,rho1,rho2,xm,c);
+                if(vm>0){
+                    xl = xm; vl = vm;
+                } else if(vm<0){
+                    xr = xm; vr = vm;
+                }
+                cnt++;
+            }
+            lam[n] = xm;
+            printf("something wrong with n=%d\n",n);
         }
     }
 }

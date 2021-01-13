@@ -20,8 +20,10 @@ while ~feof(fid) && ~flg_end
                         lbl_info.(obj_name) = {lbl_info.(obj_name)};
                     end
                     lbl_info.(obj_name) = [lbl_info.(obj_name), {obj}];
+                    zzz.(obj_name) = [zzz.(obj_name) {value}];
                 else
                     lbl_info.(obj_name) = obj;
+                    zzz.(obj_name) = value;
                 end
             case 'GROUP'
                 [grp,grp_name] = readNested(fid,value,'GROUP');
@@ -30,10 +32,11 @@ while ~feof(fid) && ~flg_end
                         lbl_info.(grp_name) = {lbl_info.(grp_name)};
                     end
                     lbl_info.(grp_name) = [lbl_info.(grp_name), {grp}];
+                    zzz.(group_name) = [zzz.(group_name) {value}];
                 else
                     lbl_info.(grp_name) = grp;
+                    zzz.(grp_name) = value;
                 end
-                
             otherwise
                 lbl_info.(param) = value;
                 zzz.(param) = param_ori;
@@ -51,7 +54,9 @@ fclose(fid);
 end
 
 function [obj,obj_name] = readNested(fid,obj_value,classname_nested)
-    obj_name = [classname_nested '_' obj_value];
+    obj_value_cor = replace(obj_value,{' ',':'},'_');
+    obj_value_cor = replace(obj_value_cor,{';','^'},'');
+    obj_name = [classname_nested '_' obj_value_cor];
     obj = []; zzz = [];
     flg = 1;
     while flg

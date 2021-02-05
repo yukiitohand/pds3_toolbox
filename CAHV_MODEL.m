@@ -16,6 +16,7 @@ classdef CAHV_MODEL < handle
         vs
         Hdash
         Vdash
+        REFERENCE_COORD_SYSTEM
     end
     
     methods
@@ -34,6 +35,8 @@ classdef CAHV_MODEL < handle
                             obj.H = reshape(varargin{i+1},1,[]);
                         case {'V','VERTICAL'}
                             obj.V = reshape(varargin{i+1},1,[]);
+                        case {'REFERENCE_COORD_SYSTEM'}
+                            obj.REFERENCE_COORD_SYSTEM = varargin{i+1};
                         otherwise
                             error('Parameter: %s', varargin{i});   
                     end

@@ -35,6 +35,8 @@ classdef CAHVOR_MODEL < CAHV_MODEL
                             if ~isempty(varargin{i+1})
                                 obj.R = reshape(varargin{i+1},1,[]);
                             end
+                        case {'REFERENCE_COORD_SYSTEM'}
+                            obj.REFERENCE_COORD_SYSTEM = varargin{i+1};
                         otherwise
                             error('Parameter: %s', varargin{i});   
                     end

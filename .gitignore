@@ -1,0 +1,5 @@
+# ignore all MATLAB temporary files
+*.m~
+*.asv
+**/fort.6
+*.mexmaci64

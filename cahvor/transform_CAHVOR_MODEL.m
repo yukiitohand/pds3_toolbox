@@ -45,6 +45,9 @@ else
                 tlorder = upper(varargin{i+1});
             case 'TRANSLATION_VECTOR'
                 tlvec = varargin{i+1};
+                if iscolumn(tlvec)
+                    tlvec = tlvec';
+                end
             otherwise
                 error('Unrecognized option: %s',varargin{i});
         end

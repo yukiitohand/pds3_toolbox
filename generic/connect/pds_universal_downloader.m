@@ -21,6 +21,10 @@ function [dirs,files] = pds_universal_downloader(subdir_local, ...
 %      'SUBDIR_REMOTE   : (default) '' If empty, then SUBDIR_LOCAL is used.
 %      'BASENAMEPTRN'   : Pattern for the regular expression for file.
 %                         (default) '.*'
+%      'EXTENSION','EXT': Files with the extention will be downloaded. If
+%                         it is empty, then files with any extension will
+%                         be downloaded.
+%                         (default) ''
 %      'DIRSKIP'        : if skip directories or walk into them
 %                         (default) 1 (boolean)
 %      'PROTOCOL'       : internet protocol for downloading
@@ -30,7 +34,7 @@ function [dirs,files] = pds_universal_downloader(subdir_local, ...
 %      'DWLD','DOWNLOAD' : if download the data or not, 2: download, 1:
 %                         access an only show the path, 0: nothing
 %                         (default) 0
-%      'HTMLFILE'           : path to the html file to be read
+%      'HTMLFILE'       : path to the html file to be read
 %                         (default) ''
 %      'OUT_FILE'       : path to the output file
 %                         (default) ''
@@ -53,17 +57,18 @@ function [dirs,files] = pds_universal_downloader(subdir_local, ...
 % url_remote_root = pds_geosciences_node_env_vars.pds_geosciences_node_root_URL;
 
 
-basenamePtrn = '.*';
-protocol = 'http';
+basenamePtrn  = '.*';
+ext           = '';
+protocol      = 'http';
 subdir_remote = '';
-overwrite = 0;
-dirskip = 1;
-dwld = 0;
-html_file = '';
-outfile = '';
-cap_filename = true;
+overwrite     = 0;
+dirskip       = 1;
+dwld          = 0;
+html_file     = '';
+outfile       = '';
+cap_filename  = true;
 index_cache_update = false;
-vebose = true;
+verbose = true;
 
 if (rem(length(varargin),2)==1)
     error('Optional parameters should always go by pairs');
@@ -72,6 +77,8 @@ else
         switch upper(varargin{i})
             case 'BASENAMEPTRN'
                 basenamePtrn = varargin{i+1};
+            case {'EXT','EXTENSION'}
+                ext = varargin{i+1};
             case 'SUBDIR_REMOTE'
                 subdir_remote = varargin{i+1};
             case 'DIRSKIP'
@@ -103,6 +110,21 @@ if dwld==0
         fprintf('Nothing is performed with Download=%d\n',dwld);
     end
     return;
+end
+
+if ~isempty(ext)
+    if ischar(ext)
+        if ~strcmp(ext(1),'.')
+            ext = ['.' ext];
+        end
+    elseif iscell(ext)
+        for i=1:length(ext)
+            if ~strcmp(ext{i}(1),'.')
+                ext{i} = ['.' ext];
+            end
+        end
+        
+    end
 end
 
 no_local_directory = false;
@@ -214,115 +236,111 @@ if ~errflg
     % get all the links
     [lnks] = func_getlnks(html);
     % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
-
-
+    
     match_flg = 0;
     for i=1:length(lnks)
         if any(strcmpi(lnks(i).type,{'PARENTDIR','To Parent Directory'})) ...
-                || strcmpi(lnks(i).text,'Parent Directory')
+                || ( isfield(lnks(i),'text') && strcmpi(lnks(i).text,'Parent Directory') )
             % skip if it is 'PARENTDIR'
         elseif strcmpi(lnks(i).type,'DIR')
-            dirs = [dirs {lnks(i).hyperlink}];
+            dirname = lnks(i).hyperlink;
+            dirs = [dirs {dirname}];
             if dirskip
                % skip
             else
                 % recursively access the directory
                 if verbose
-                    fprintf('Going to %s\n',joinPath(subdir_local,lnks(i).hyperlink));
+                    fprintf('Going to %s\n',joinPath(subdir_local,dirname));
                 end
-                [dirs_ch,files_ch] = pds_geoscience_node_universal_downloader(...
+                [dirs_ch,files_ch] = pds_universal_downloader(...
                     joinPath(subdir_local,lnks(i).hyperlink),...
-                    'SUBDIR_REMOTE',joinPath(subdir_remote,lnks(i).hyperlink),...
-                    'Basenameptrn',basenamePtrn,'dirskip',dirskip,...
-                    'protocol',protocol,'overwrite',overwrite,'dwld',dwld,...
-                    'out_file',outfile);
+                    'SUBDIR_REMOTE',joinPath(subdir_remote,dirname),...
+                    'Basenameptrn',basenamePtrn,'EXT',ext,'dirskip',dirskip,...
+                    'protocol',protocol,'overwrite',overwrite,'HTML_FILE',html_file,...
+                    'dwld',dwld,'out_file',outfile,'CAPITALIZE_FILENAME',cap_filename, ...
+                    'INDEX_CACHE_UPDATE',index_cache_update);
+                for ii=1:length(dirs_ch)
+                    dirs_ch{ii} = joinPath(dirname,dirs_ch{ii});
+                end
+                dirs = [dirs dirs_ch];
+                for ii=1:length(files_ch)
+                    files_ch{ii} = joinPath(dirname,files);
+                end
+                files = [files files_ch];
             end
         else
-            remoteFile = [protocol '://' joinPath(url_remote,lnks(i).hyperlink)];
-            if ~isempty(regexpi(lnks(i).hyperlink,basenamePtrn,'ONCE'))
+            filename = lnks(i).hyperlink;
+            remoteFile = [protocol '://' joinPath(url_remote,filename)];
+            if cap_filename
+                filename_local = upper(filename);
+            else
+                filename_local = filename;
+            end
+            [~,~,ext_filename] = fileparts(filename);
+            % Proceed if the filename matches the ptrn and extension
+            % matches
+            if ~isempty(regexpi(filename,basenamePtrn,'ONCE')) ...
+                && ( isempty(ext) || ( ~isempty(ext) && any(strcmpi(ext_filename,ext)) ) )
                 match_flg = 1;
                 
                 if ~exist(localTargetDir,'dir') && ~no_local_directory
                     mkdir(localTargetDir);
                 end
-                if cap_filename
-                    localTarget =joinPath(localTargetDir,upper(lnks(i).hyperlink));
-                else
-                    localTarget =joinPath(localTargetDir,lnks(i).hyperlink);
-                end
-                if dwld==2
-                    if exist(localTarget,'file') && ~overwrite
-                        if verbose
-                            fprintf('Exist: %s\n',localTarget);
-                            fprintf('Skip downloading\n');
-                        end
-                    else
-                        flg_d=1;
-                        max_trial = 2;
-                        mt = 1;
-                        while flg_d
-                            try
-                                if exist(localTarget,'file') && overwrite
-                                    if verbose
-                                        fprintf('Exist: %s\n',localTarget);
-                                        fprintf('Overwriting..');
-                                    end
+                
+                localTarget =joinPath(localTargetDir,filename_local);
+                
+                switch dwld
+                    case 2
+                        if exist(localTarget,'file') && ~overwrite
+                            % Skip downloading
+                            if verbose
+                                fprintf('Exist: %s\n',localTarget);
+                                fprintf('Skip downloading\n');
+                            end
+                        else
+                            if exist(localTarget,'file') && overwrite
+                                if verbose
+                                    fprintf('Exist: %s\n',localTarget);
+                                    fprintf('Overwriting..');
                                 end
+                            else
                                 if verbose
                                     fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
                                 end
-                                if verLessThan('matlab','8.4')
-                                    urlwrite(remoteFile,localTarget);
-                                else
-                                    options = weboptions('ContentType','raw','Timeout',600);
-                                    websave_robust(localTarget,remoteFile,options);
-                                end
+                                [err] = websavefile_multversion(remoteFile,localTarget);
                                 if verbose
-                                    fprintf('......Done!\n');
-                                end
-                                flg_d=0;
-                            catch
-                                fprintf('Failed. Retrying...\n');
-                                mt = mt + 1;
-                                if mt > max_trial
-                                    error('Download failed.');
+                                    if err
+                                        fprintf('......Download failed.\n');
+                                    else
+                                        fprintf('......Done!\n');
+                                    end
                                 end
                             end
                         end
-                    end
-                elseif dwld==1
-                    if no_local_directory
+                    case 1
                         if verbose
-                            fprintf('%s\n',remoteFile);
-                        end
-                    else
-                        if verbose
-                            fprintf('%s,%s\n',remoteFile,localTarget);
-                        end
-                    end
-                    if ~isempty(outfile)
-                        if no_local_directory
-                            if verbose
-                                fprintf(fp,'%s\n',remoteFile);
+                            if no_local_directory
+                                fprintf('%s\n',remoteFile);
+                            else
+                                fprintf('%s,%s\n',remoteFile,localTarget);
                             end
-                        else
-                            if verbose
-                                fprintf(fp,'%s,%s\n',remoteFile,localTarget);
+                            if ~isempty(outfile)
+                                if no_local_directory
+                                    fprintf(fp,'%s\n',remoteFile);
+                                else
+                                    fprintf(fp,'%s,%s\n',remoteFile,localTarget);
+                                end
                             end
                         end
-                    end
-                elseif dwld==0
-                    if verbose
-                        fprintf('Nothing happens with dwld=0\n');
-                    end
-                else
-                    error('dwld=%d is not defined\n',dwld);
+                    case 0
+                        if verbose
+                            fprintf('Nothing happens with dwld=0\n');
+                        end
+                    otherwise
+                        error('dwld=%d is not defined\n',dwld);
                 end
-                if cap_filename
-                    files = [files {upper(lnks(i).hyperlink)}];
-                else
-                    files = [files {lnks(i).hyperlink}];
-                end
+                
+                files = [files {filename_local}];
             end
 
         end   
@@ -336,6 +354,38 @@ end
 
 if ~isempty(outfile)
     fclose(fp);
+end
+
+end
+
+function [err] = websavefile_multversion(remoteFile,localTarget)
+%[errcode] = websavefile_multversion(remoteFile,localTarget)
+%   Download "remoteFile" to "localTarget"
+%  INPUTS
+%   remoteFile: address of the remote file with a protocol
+%   localTarget: file path to which the file is saved.
+%  OUTPUTS
+%   err: 0 no error, 1: any error
+flg=1; max_trial = 2; mt = 1;
+while flg
+    try
+        if verLessThan('matlab','8.4')
+            urlwrite(remoteFile,localTarget);
+        else
+            options = weboptions('ContentType','raw','Timeout',600);
+            websave_robust(localTarget,remoteFile,options);
+        end
+        flg=0;
+        err=0;
+    catch
+        fprintf('Failed. Retrying...\n');
+        mt = mt + 1;
+        if mt > max_trial
+            flg=0;
+            err=1;
+        end
+       
+    end
 end
 
 end

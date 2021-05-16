@@ -303,17 +303,16 @@ if ~errflg
                                     fprintf('Exist: %s\n',localTarget);
                                     fprintf('Overwriting..');
                                 end
-                            else
-                                if verbose
-                                    fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
-                                end
-                                [err] = websavefile_multversion(remoteFile,localTarget);
-                                if verbose
-                                    if err
-                                        fprintf('......Download failed.\n');
-                                    else
-                                        fprintf('......Done!\n');
-                                    end
+                            end
+                            if verbose
+                                fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
+                            end
+                            [err] = websavefile_multversion(remoteFile,localTarget);
+                            if verbose
+                                if err
+                                    fprintf('......Download failed.\n');
+                                else
+                                    fprintf('......Done!\n');
                                 end
                             end
                         end

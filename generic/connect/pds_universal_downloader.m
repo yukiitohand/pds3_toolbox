@@ -236,10 +236,7 @@ if isempty(html_file)
                     [status] = mkdir(dcur);
                     if status
                         if verbose, fprintf('"%s" is created.\n',dcur); end
-                        if isunix
-                            system(['chmod -R 777 ' dcur]);
-                            if verbose, fprintf('"%s": permission is set to 777.\n',dcur); end
-                        end
+                        chmod777(dcur,verbose);
                     else
                         error('Failed to create %s',dcur);
                     end
@@ -341,10 +338,11 @@ if ~errflg
                                     fprintf('......Download failed.\n');
                                 else
                                     fprintf('......Done!\n');
-                                    if isunix
-                                        system(['chmod 777 ' localTarget]);
-                                        if verbose, fprintf('"%s": permission is set to 777.\n',localTarget); end
-                                    end
+                                    chmod777(localTarget,verbose);
+                                    % if isunix
+                                    %     system(['chmod 777 ' localTarget]);
+                                    %     if verbose, fprintf('"%s": permission is set to 777.\n',localTarget); end
+                                    % end
                                 end
                             end
                         end

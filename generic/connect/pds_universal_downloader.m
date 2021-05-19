@@ -129,7 +129,7 @@ end
 
 no_local_directory = false;
 
-url_local = joinPath(url_local_root,subdir_local);
+url_local      = joinPath(url_local_root,subdir_local);
 localTargetDir = joinPath(localrootDir,url_local);
 if isempty(subdir_remote)
    subdir_remote = subdir_local;
@@ -177,10 +177,22 @@ if ~exist(localrootDir,'dir')
             return;
         end
     elseif strcmpi(ow,'y')
-        mkdir(localrootDir);
-        fprintf('localrootdir "%s" is created.',localrootDir);
+        [status] = mkdir(localrootDir);
+        if status
+            fprintf('localrootdir "%s" is created.\n',localrootDir);
+            if isunix
+                system(['chmod -R 777 ' localrootDir]);
+                if verbose, fprintf('localrootdir "%s": permission is set to 777.\n',localrootDir); end
+            end
+        else
+            error('Failed to create %s',localrootDir);
+        end
     end
 end
+
+
+
+
 
 dirs = []; files = [];
 
@@ -214,7 +226,26 @@ if isempty(html_file)
                 end
             end
         end
-        if ~exist(localTargetDir,'dir'), mkdir(localTargetDir); end
+        % create the target directory and set 777
+        url_local_splt = split(url_local,'/');
+        dcur = localrootDir;
+        if ~exist(localTargetDir,'dir') % if the directory doesn't exist,
+            for i=1:length(url_local_splt)
+                dcur = joinPath(dcur,url_local_splt{i});
+                if ~exist(dcur,'dir')
+                    [status] = mkdir(dcur);
+                    if status
+                        if verbose, fprintf('"%s" is created.\n',dcur); end
+                        if isunix
+                            system(['chmod -R 777 ' dcur]);
+                            if verbose, fprintf('"%s": permission is set to 777.\n',dcur); end
+                        end
+                    else
+                        error('Failed to create %s',dcur);
+                    end
+                end
+            end
+        end
         fid_index = fopen(html_cachefilepath,'w');
         fwrite(fid_index,html);
         fclose(fid_index);
@@ -283,9 +314,6 @@ if ~errflg
                 && ( isempty(ext) || ( ~isempty(ext) && any(strcmpi(ext_filename,ext)) ) )
                 match_flg = 1;
                 
-                if ~exist(localTargetDir,'dir') && ~no_local_directory
-                    mkdir(localTargetDir);
-                end
                 
                 localTarget =joinPath(localTargetDir,filename_local);
                 
@@ -313,6 +341,10 @@ if ~errflg
                                     fprintf('......Download failed.\n');
                                 else
                                     fprintf('......Done!\n');
+                                    if isunix
+                                        system(['chmod 777 ' localTarget]);
+                                        if verbose, fprintf('"%s": permission is set to 777.\n',localTarget); end
+                                    end
                                 end
                             end
                         end

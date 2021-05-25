@@ -264,7 +264,7 @@ if ~errflg
     % get all the links
     [lnks] = func_getlnks(html);
     % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
-    
+    fnamelist_local = {dir(localTargetDir).name};
     match_flg = 0;
     for i=1:length(lnks)
         if any(strcmpi(lnks(i).type,{'PARENTDIR','To Parent Directory'})) ...
@@ -312,21 +312,29 @@ if ~errflg
                 match_flg = 1;
                 
                 
-                localTarget =joinPath(localTargetDir,filename_local);
+                localTarget = joinPath(localTargetDir,filename_local);
+                
+                exist_idx = find(strcmpi(filename_local,fnamelist_local));
+                exist_flg = ~isempty(exist_idx);
                 
                 switch dwld
                     case 2
-                        if exist(localTarget,'file') && ~overwrite
+                        if exist_flg && ~overwrite
                             % Skip downloading
                             if verbose
                                 fprintf('Exist: %s\n',localTarget);
                                 fprintf('Skip downloading\n');
                             end
                         else
-                            if exist(localTarget,'file') && overwrite
+                            if exist_flg && overwrite
                                 if verbose
                                     fprintf('Exist: %s\n',localTarget);
                                     fprintf('Overwriting..');
+                                    for ii=1:length(exist_idx)
+                                        localExistFilePath = joinPath(localTargetDir,fnamelist_local{ii});
+                                        fprintf('Deleting %s ...\n',localExistFilePath);
+                                        delete(localExistFilePath);
+                                    end
                                 end
                             end
                             if verbose
@@ -339,10 +347,6 @@ if ~errflg
                                 else
                                     fprintf('......Done!\n');
                                     chmod777(localTarget,verbose);
-                                    % if isunix
-                                    %     system(['chmod 777 ' localTarget]);
-                                    %     if verbose, fprintf('"%s": permission is set to 777.\n',localTarget); end
-                                    % end
                                 end
                             end
                         end

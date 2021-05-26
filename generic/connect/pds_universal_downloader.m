@@ -243,9 +243,11 @@ if isempty(html_file)
                 end
             end
         end
+        delete(html_cachefilepath);
         fid_index = fopen(html_cachefilepath,'w');
         fwrite(fid_index,html);
         fclose(fid_index);
+        chmod777(html_cachefilepath,verbose);
     end
 else
     if exist(html_file,'file')
@@ -332,7 +334,8 @@ if ~errflg
                                     fprintf('Exist: %s\n',localTarget);
                                     fprintf('Overwriting..');
                                     for ii=1:length(exist_idx)
-                                        localExistFilePath = joinPath(localTargetDir,fnamelist_local{ii});
+                                        exist_idx_ii = exist_idx(ii);
+                                        localExistFilePath = joinPath(localTargetDir,fnamelist_local{exist_idx_ii});
                                         fprintf('Deleting %s ...\n',localExistFilePath);
                                         delete(localExistFilePath);
                                     end

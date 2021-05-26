@@ -15,7 +15,7 @@ max_trial = 5;
 
 filename_ori = filename;
 
-while ~flg_fin || n_failure < max_trial
+while ~(flg_fin || n_failure > max_trial)
     try
         websave(filename,url,options_tmp);
         flg_fin = 1;

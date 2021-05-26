@@ -264,7 +264,8 @@ if ~errflg
     % get all the links
     [lnks] = func_getlnks(html);
     % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
-    fnamelist_local = {dir(localTargetDir).name};
+    fnamelist_local = dir(localTargetDir);
+    fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
     match_flg = 0;
     for i=1:length(lnks)
         if any(strcmpi(lnks(i).type,{'PARENTDIR','To Parent Directory'})) ...

@@ -243,7 +243,9 @@ if isempty(html_file)
                 end
             end
         end
-        delete(html_cachefilepath);
+        if exist(html_cachefilepath,'file')
+            delete(html_cachefilepath);
+        end
         fid_index = fopen(html_cachefilepath,'w');
         fwrite(fid_index,html);
         fclose(fid_index);

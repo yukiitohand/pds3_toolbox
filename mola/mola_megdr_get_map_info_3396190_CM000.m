@@ -32,7 +32,11 @@ switch upper(map_projection_type)
 
         map_info = [];
         map_info.projection = map_projection_type_tar;
-        map_info.image_coords = [pxlS1 pxlL1];
+        % [1,1] is considered as the center of the most upper left pixel by the 
+        % class SphereEquiRectangularProj, while in ENVI, [1.5 1.5] is considered 
+        % as the center of the most upper left pixel. [1 1] is the upper left
+        % vertex of the upper left most pixel.
+        map_info.image_coords = [pxlS1+0.5 pxlL1+0.5];
         map_info.mapx = x1;
         map_info.mapy = y1;
         map_info.dx = meter_per_pxl;

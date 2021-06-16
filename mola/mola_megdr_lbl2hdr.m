@@ -79,8 +79,8 @@ else
         hdr_info.map_info = map_info;
         hdr_info.projection_info = projection_info;
         hdr_info.coordinate_system_string = coordinate_system_string;
-        hdr_info.x = map_info.dx*((1:hdr_info.samples)-map_info.image_coords(1))+map_info.mapx;
-        hdr_info.y = map_info.dy*(map_info.image_coords(2)-(1:hdr_info.lines))+map_info.mapy;
+        % hdr_info.x = map_info.dx*((1:hdr_info.samples)-map_info.image_coords(1))+map_info.mapx;
+        % hdr_info.y = map_info.dy*(map_info.image_coords(2)-(1:hdr_info.lines))+map_info.mapy;
     end
     
     hdr_info.data_ignore_value = nan;

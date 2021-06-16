@@ -13,7 +13,7 @@ switch upper(map_projection_type)
         center_latitude = obj_imp.CENTER_LATITUDE.value;
         center_longitude = obj_imp.CENTER_LONGITUDE.value;
         
-        pxl_per_deg = obj_imp.MAP_RESOLUTION.value;
+        pxl_per_deg   = obj_imp.MAP_RESOLUTION.value;
         meter_per_pxl = obj_imp.MAP_SCALE.value;
         meter_per_deg = meter_per_pxl * pxl_per_deg;
         S0 = obj_imp.SAMPLE_PROJECTION_OFFSET.value;
@@ -24,7 +24,11 @@ switch upper(map_projection_type)
 
         map_info = [];
         map_info.projection = map_projection_type;
-        map_info.image_coords = [1 1];
+        % [1,1] is considered as the center of the most upper left pixel by the 
+        % class SphereEquiRectangularProj, while in ENVI, [1.5 1.5] is considered 
+        % as the center of the most upper left pixel. [1 1] is the upper left
+        % vertex of the upper left most pixel.
+        map_info.image_coords = [1.5 1.5];
         map_info.mapx = x1;
         map_info.mapy = y1;
         map_info.dx = meter_per_pxl;

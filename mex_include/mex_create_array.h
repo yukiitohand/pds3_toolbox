@@ -14,7 +14,7 @@ double** set_mxDoubleMatrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (double **) mxMalloc(N*sizeof(double*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxDoubleMatrix","Failed to allocate memory space.");
     pm[0] = mxGetDoubles(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -29,7 +29,7 @@ float** set_mxSingleMatrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (float **) mxMalloc(N*sizeof(float*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxSingleMatrix","Failed to allocate memory space.");
     pm[0] = mxGetSingles(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -44,7 +44,7 @@ bool** set_mxLogicalMatrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (bool **) mxMalloc(N*sizeof(bool*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxLogicalMatrix","Failed to allocate memory space.");
     pm[0] = mxGetLogicals(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -59,7 +59,7 @@ uint8_T** set_mxUint8Matrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (uint8_T **) mxMalloc(N*sizeof(uint8_T*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxUint8Matrix","Failed to allocate memory space.");
     pm[0] = mxGetUint8s(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -74,7 +74,7 @@ uint16_T** set_mxUint16Matrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (uint16_T **) mxMalloc(N*sizeof(uint16_T*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxUint16Matrix","Failed to allocate memory space.");
     pm[0] = mxGetUint16s(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -89,7 +89,7 @@ int8_T** set_mxInt8Matrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (int8_T **) mxMalloc(N*sizeof(int8_T*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxInt8Matrix","Failed to allocate memory space.");
     pm[0] = mxGetInt8s(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -102,9 +102,9 @@ int16_T** set_mxInt16Matrix(const mxArray *pmi){
     mwIndex j;
     int16_T **pm;
     M = mxGetM(pmi); N = mxGetN(pmi);
-    pm = (int16_T **) mxMalloc(N*sizeof(int32_T*));
+    pm = (int16_T **) mxMalloc(N*sizeof(int16_T*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxInt16Matrix","Failed to allocate memory space.");
     pm[0] = mxGetInt16s(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -119,7 +119,7 @@ int32_T** set_mxInt32Matrix(const mxArray *pmi){
     M = mxGetM(pmi); N = mxGetN(pmi);
     pm = (int32_T **) mxMalloc(N*sizeof(int32_T*));
     if(pm==NULL)
-        mexErrMsgIdAndTxt("set_mxDoubleMatrix","Failed to allocate memory space.");
+        mexErrMsgIdAndTxt("mex_create_array:set_mxInt32Matrix","Failed to allocate memory space.");
     pm[0] = mxGetInt32s(pmi);
     for(j=1;j<N;j++){
         pm[j] = pm[j-1]+M;
@@ -226,6 +226,45 @@ void createDoublePMatrix(double ****ar2d, double ***ar_base, size_t N, size_t M)
     for(ni=1;ni<N;ni++){
         (*ar2d)[ni] = (*ar2d)[ni-1] + M;
     }
+}
+
+/* =====================================================================
+ *   MultBand utilities 
+ * ===================================================================== */
+
+/* set_mxInt16MatrixMultBand
+ * Return ***pm, pointer of pointer of pointer
+ */
+int16_t*** set_mxInt16MatrixMultBand(const mxArray *pmi){
+    mwSize M,N,B;
+    mwSize ndim;
+    const mwSize *dims;
+    mwSize i,j;
+    int16_t ***pm;
+    
+    ndim = mxGetNumberOfDimensions(pmi);
+    if(ndim!=3)
+        mexErrMsgIdAndTxt("set_mxInt16MatrixMultBand","input mxArray is not 3-dimensional.");
+    
+    dims = mxGetDimensions(pmi);
+    M = dims[0]; N = dims[1]; B = dims[2];
+    pm = (int16_t***) mxMalloc(sizeof(int16_t**)*B);
+    
+    if(pm==NULL){
+        mexErrMsgIdAndTxt("set_mxInt16MatrixMultBand","Failed to allocate memory space.");
+    } else {
+        for(i=0;i<B;i++){
+            pm[i] = (int16_t**) mxMalloc(N*sizeof(int16_t*));
+            if(pm[i]!=NULL){
+                pm[i][0] = mxGetInt16s(pmi)+M*N*i;
+                for(j=1;j<N;j++){
+                    pm[i][j] = pm[i][j-1]+M;
+                }
+            }
+        }
+    }
+    
+    return pm;
 }
 
 #endif

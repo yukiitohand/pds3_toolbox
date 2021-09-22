@@ -165,7 +165,7 @@ value = rmdq(value_raw);
 
 % convert to a numeric value if that is true
 % value_tmp = str2double(value);
-ptrn_strnum = '^\s*[-]{0,1}\d*\.{0,1}\d*[e]{0,1}[\+-]{0,1}\d*\s*$';
+ptrn_strnum = '^\s*[-]{0,1}\d*\.{0,1}\d*([eE][\+-]{0,1}\d+){0,1}\s*$';
 if regexp(value,ptrn_strnum,'once')
     value = sscanf(value,'%f');
     % value = value_tmp;

@@ -8,7 +8,7 @@
 fpath_self = mfilename('fullpath');
 [dirpath_self,filename] = fileparts(fpath_self);
 
-idx_sep = strfind(dirpath_self,'msl_toolbox/setting');
+idx_sep = strfind(dirpath_self,'pds3_toolbox');
 dirpath_toolbox = dirpath_self(1:idx_sep-1);
 
 pds3_toolbox_path = joinPath(dirpath_toolbox, 'pds3_toolbox/');
@@ -17,10 +17,6 @@ pds3_toolbox_path = joinPath(dirpath_toolbox, 'pds3_toolbox/');
 %% Prior checking if necessary files are accessible.
 if ~exist(pds3_toolbox_path,'dir')
     error('pds3_toolbox does not exist. Get at github.com/yukiitohand/pds3_toolbox/');
-end
-
-if ~exist(msl_toolbox_path,'dir')
-    error('msl_toolbox does not exist.');
 end
 
 % Sorry, these functions are currently not supported for MATLAB 9.3 or

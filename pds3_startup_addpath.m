@@ -3,18 +3,20 @@ function [] = pds3_startup_addpath()
 % % Automatically find the path to toolboxes
 fpath_self = mfilename('fullpath');
 [dirpath_self,filename] = fileparts(fpath_self);
-toolbox_root_dir = dirpath_self(1:idx_sep-1);
+mtch = regexpi(dirpath_self,'(?<parent_dirpath>.*)/pds3_toolbox[/]{0,1}','names');
+toolbox_root_dir = mtch.parent_dirpath;
 
 %-------------------------------------------------------------------------%
 % name of the directory of each toolbox
 base_toolbox_dirname = 'base';
 envi_toolbox_dirname = 'envi';
+pds3_toolbox_dirname = 'pds3_toolbox';
 
 %-------------------------------------------------------------------------%
 pathCell = strsplit(path, pathsep);
 
 %% base toolbox
-base_toolbox_dir = [toolbox_root_dir base_toolbox_dirname ];
+base_toolbox_dir = [toolbox_root_dir '/' base_toolbox_dirname ];
 % joinPath in base toolbox will be used in the following. "base" toolbox
 % need to be loaded first. base/joinPath.m automatically determine the
 % presence of trailing slash, so you do not need to worry it.

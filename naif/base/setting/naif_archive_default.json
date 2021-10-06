@@ -1,0 +1,4 @@
+{
+    "local_naif_archive_rootDir"  : "~/data/",
+    "naif_archive_root_URL"       : "naif.jpl.nasa.gov/"
+}

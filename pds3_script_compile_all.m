@@ -1,3 +1,4 @@
+function [] = pds3_script_compile_all()
 % pds3_script_compile_all.m
 % Script for compiling all the necessary C/MEX codes
 %
@@ -94,3 +95,5 @@ end
 %     pds3_toolbox_mex_include_path
 % using -I option.
 % Also do not forget to add '-R2018a'
+
+end

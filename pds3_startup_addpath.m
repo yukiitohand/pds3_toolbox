@@ -1,48 +1,29 @@
 function [] = pds3_startup_addpath()
-%-------------------------------------------------------------------------%
-% % Automatically find the path to toolboxes
+%% Automatically find the path to toolboxes
 fpath_self = mfilename('fullpath');
 [dirpath_self,filename] = fileparts(fpath_self);
-mtch = regexpi(dirpath_self,'(?<parent_dirpath>.*)/pds3_toolbox[/]{0,1}','names');
+path_ptrn = '(?<parent_dirpath>.*)/(?<toolbox_dirname>[^/]+[/]{0,1})';
+mtch = regexpi(dirpath_self,path_ptrn,'names');
 toolbox_root_dir = mtch.parent_dirpath;
+pds3_toolbox_dirname  = mtch.toolbox_dirname;
 
-%-------------------------------------------------------------------------%
-% name of the directory of each toolbox
-base_toolbox_dirname = 'base';
-envi_toolbox_dirname = 'envi';
-pds3_toolbox_dirname = 'pds3_toolbox';
-
-%-------------------------------------------------------------------------%
+%% find dependent toolboxes
+dList = dir(toolbox_root_dir);
+error_if_not_unique = true;
 pathCell = strsplit(path, pathsep);
 
-%% base toolbox
-base_toolbox_dir = [toolbox_root_dir '/' base_toolbox_dirname ];
-% joinPath in base toolbox will be used in the following. "base" toolbox
-% need to be loaded first. base/joinPath.m automatically determine the
-% presence of trailing slash, so you do not need to worry it.
-if exist(base_toolbox_dir,'dir')
-    if ~check_path_exist(base_toolbox_dir, pathCell)
-        addpath(base_toolbox_dir);
-    end
-else
-    warning([ ...
-        'base toolbox is not detected. Download from' '\n' ...
-        '   https://github.com/yukiitohand/base/'
-        ]);
+% base toolbox
+[base_toolbox_dir,base_toolbox_dirname] = get_toolbox_dirname(dList, ...
+    'base',error_if_not_unique);
+if ~check_path_exist(base_toolbox_dir, pathCell)
+    addpath(base_toolbox_dir);
 end
 
-%% envi toolbox
-envi_toolbox_dir = joinPath(toolbox_root_dir, envi_toolbox_dirname);
-
-if exist(envi_toolbox_dir,'dir')
-    if ~check_path_exist(envi_toolbox_dir, pathCell)
-        run(joinPath(envi_toolbox_dir,'envi_startup_addpath'));
-    end
-else
-    warning([ ...
-        'envi toolbox is not detected. Download from' '\n' ...
-        '   https://github.com/yukiitohand/envi/'
-        ]);
+% envi toolbox
+[envi_toolbox_dir,envi_toolbox_dirname] = get_toolbox_dirname(dList, ...
+    'envi',error_if_not_unique);
+if ~check_path_exist(envi_toolbox_dir, pathCell)
+    run(joinPath(envi_toolbox_dir,'envi_startup_addpath'));
 end
 
 %% pds3_toolbox
@@ -97,5 +78,37 @@ function [onPath] = check_path_exist(dirpath, pathCell)
       onPath = any(strcmpi(dirpath, pathCell));
     else
       onPath = any(strcmp(dirpath, pathCell));
+    end
+end
+
+function [toolbox_dirpath,toolbox_dirname] = get_toolbox_dirname(dList,toolbox_dirname_wover,error_if_not_unique)
+    dirname_ptrn = sprintf('(?<toolbox_dirname>%s(-[\\d\\.]+){0,1}[/]{0,1})',toolbox_dirname_wover);
+    mtch_toolbox_dirname = regexpi({dList.name},dirname_ptrn,'names');
+    mtchidx = find(not(cellfun('isempty',mtch_toolbox_dirname)));
+    toolbox_root_dir = dList(1).folder;
+    if length(mtchidx)==1
+        toolbox_dirname = mtch_toolbox_dirname{mtchidx}.toolbox_dirname;
+        toolbox_dirpath = [toolbox_root_dir, '/', toolbox_dirname];
+    elseif isempty(mtchidx)
+        toolbox_dirname = [];
+        toolbox_dirpath = [];
+        if error_if_not_unique
+            
+            error(['Cannot find %s toolbox in\n %s', ...
+                   'Download from\n', ...
+                   '   https://github.com/yukiitohand/%s/', ...
+                  ], ...
+                toolbox_dirname_wover,toolbox_root_dir,toolbox_dirname_wover);
+        end
+    else % length(mtchidx)>1
+        toolbox_dirname = {cat(2,mtch_toolbox_dirname{mtchidx}).toolbox_dirname};
+        toolbox_dirpath = cellfun(@(x) strjoin({toolbox_root_dir,x},'/'), toolbox_dirname, ...
+            'UniformOutput',false);
+        if error_if_not_unique
+            toolbox_root_dir = dList(1).folder;
+            error('Multiple %s toolboxes %s are detected in\n %s', ...
+            toolbox_dirname_wover,strjoin(toolbox_dirname,','), toolbox_root_dir);
+        end
+        
     end
 end

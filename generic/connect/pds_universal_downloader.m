@@ -267,6 +267,9 @@ if ~errflg
     
     % get all the links
     [lnks] = func_getlnks(html);
+    if isempty(lnks)
+        fprintf("No files/directories found. Updating cache file may solve the problem.\n")
+    end
     % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
     fnamelist_local = dir(localTargetDir);
     fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};

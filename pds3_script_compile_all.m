@@ -8,12 +8,10 @@ function [] = pds3_script_compile_all()
 
 fpath_self = mfilename('fullpath');
 [dirpath_self,filename] = fileparts(fpath_self);
+[dirpath_toolbox,pds3_toolbox_dirname] = fileparts(dirpath_self);
 
-idx_sep = strfind(dirpath_self,'pds3_toolbox');
-dirpath_toolbox = dirpath_self(1:idx_sep-1);
-
-pds3_toolbox_path  = joinPath(dirpath_toolbox, 'pds3_toolbox/');
-spice_toolbox_path = joinPath(dirpath_toolbox, 'spice/');
+pds3_toolbox_path  = fullfile(dirpath_toolbox, pds3_toolbox_dirname);
+spice_toolbox_path = fullfile(dirpath_toolbox, 'spice');
 
 
 %% Prior checking if necessary files are accessible.
@@ -39,30 +37,30 @@ if verLessThan('matlab','9.4')
 end
 
 %% Set source code paths and the output directory path.
-pds3_toolbox_mex_include_path = joinPath(pds3_toolbox_path, 'mex_include');
-SpiceUsr_include_path = joinPath(spice_toolbox_path, 'mice/include/');
-spice_lib_path = joinPath(spice_toolbox_path,'mice/lib/');
+pds3_toolbox_mex_include_path = fullfile(pds3_toolbox_path, 'mex_include');
+SpiceUsr_include_path = fullfile(spice_toolbox_path, 'mice','include');
+spice_lib_path = fullfile(spice_toolbox_path,'mice','lib');
 
 % 
 source_filepaths = { ...
-    joinPath(pds3_toolbox_path,'cahvor','cahvor_get_lambda_bisection.c')  , ...
-    joinPath(pds3_toolbox_path,'mola','mola_megdr_average_mex.c')         , ...
-    joinPath(pds3_toolbox_path,'mola','mola_megdr_upsample_double_mex.c') , ...
-    joinPath(pds3_toolbox_path,'mola','mola_megdr_upsample_int16_mex.c')    ...
+    fullfile(pds3_toolbox_path,'cahvor','cahvor_get_lambda_bisection.c')  , ...
+    fullfile(pds3_toolbox_path,'mola','mola_megdr_average_mex.c')         , ...
+    fullfile(pds3_toolbox_path,'mola','mola_megdr_upsample_double_mex.c') , ...
+    fullfile(pds3_toolbox_path,'mola','mola_megdr_upsample_int16_mex.c')    ...
 };
 
 source_filepaths_spice = { ...
-    joinPath(pds3_toolbox_path,'naif/spice_plus/','cspice_surfpt_mex.c')        , ...
-    joinPath(pds3_toolbox_path,'naif/spice_plus/','cspice_surfpt_reclat_mex.c')   ...
+    fullfile(pds3_toolbox_path,'naif','spice_plus','cspice_surfpt_mex.c')        , ...
+    fullfile(pds3_toolbox_path,'naif','spice_plus','cspice_surfpt_reclat_mex.c')   ...
 };
 
 switch computer
     case 'MACI64'
-        out_dir = joinPath(pds3_toolbox_path,'mex_build','./maci64/');
+        out_dir = fullfile(pds3_toolbox_path,'mex_build','maci64');
     case 'GLNXA64'
-        out_dir = joinPath(pds3_toolbox_path,'mex_build','./glnxa64/');
+        out_dir = fullfile(pds3_toolbox_path,'mex_build','glnxa64');
     case 'PCWIN64'
-        out_dir = joinPath(pds3_toolbox_path,'mex_build','./pcwin64/');
+        out_dir = fullfile(pds3_toolbox_path,'mex_build','pcwin64');
     otherwise
         error('Undefined computer type %s.\n',computer);
 end

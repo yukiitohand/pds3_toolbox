@@ -14,10 +14,6 @@ function [fnames_mtch,regexp_out] = naif_readDownloadBasename(basenamePtr,subdir
 %      'MATCH_EXACT'    : binary, if basename match should be exact match
 %                         or not.
 %                         (default) false
-%      'OUT_FILE'       : path to the output file
-%                         (default) ''
-%      'Force'          : binary, whether or not to force performing
-%                         pds_downloader. (default) false
 %      'Overwrite'      : binary, whether or not to overwrite the image
 %      'VERBOSE'        : boolean, whether or not to show the downloading
 %                         operations.
@@ -31,8 +27,6 @@ global naif_archive_env_vars
 localrootDir    = naif_archive_env_vars.local_naif_archive_rootDir;
 url_local_root  = naif_archive_env_vars.naif_archive_root_URL;
 
-force = 0;
-outfile = '';
 mtch_exact = false;
 ext_ignore = true;
 overwrite = 0;
@@ -48,10 +42,6 @@ else
                 mtch_exact = varargin{i+1};
             case 'EXT_IGNORE'
                 ext_ignore = varargin{i+1};
-            case 'FORCE'
-                force = varargin{i+1};
-            case 'OUT_FILE'
-                outfile = varargin{i+1};
             case 'OVERWRITE'
                 overwrite = varargin{i+1};
             case 'VERBOSE'
@@ -66,37 +56,18 @@ end
 
 dir_local = joinPath(localrootDir,url_local_root,subdir_local); 
 
-fnamelist = dir(dir_local);
-[fnames_mtch,regexp_out] = mtch_ptrn_fnamelist(basenamePtr, ...
-    [{fnamelist.name}],'exact',mtch_exact,'ext_ignore',ext_ignore);
-if dwld>0
-    if (isempty(fnames_mtch) && (dwld>0)) || force
-        [dirs,files] = naif_archive_downloader(subdir_local,...
-            'Subdir_remote',subdir_remote,'BASENAMEPTRN',basenamePtr,...
-            'DWLD',dwld,'OUT_FILE',outfile,'overwrite',overwrite, ...
-            'VERBOSE',verbose, ...
-            'INDEX_CACHE_UPDATE', index_cache_update);
-        
-        [fnames_mtch,regexp_out] = mtch_ptrn_fnamelist( ...
-            basenamePtr,files,'exact',mtch_exact, ...
-            'ext_ignore',ext_ignore);
-    end
-elseif dwld == -1
-    if ~isempty(outfile)
-        fp = fopen(outfile,'a');
-    end
-    for j=1:length(fnamelist)
-        fname = fnamelist(j).name;
-        if ~isempty(regexpi(fname,basenamePtr,'ONCE'))
-            subpath = joinPath(subdir_local,fname);
-            fprintf('%s\n',subpath);
-            if ~isempty(outfile)
-                fprintf(fp,'%s\n',subpath);
-            end
-        end
-    end
-    if ~isempty(outfile)
-        fclose(fp);
-    end
+if dwld<=0
+    fnamelist = dir(dir_local);
+    [fnames_mtch,regexp_out] = mtch_ptrn_fnamelist(basenamePtr, ...
+        [{fnamelist.name}],'exact',mtch_exact,'ext_ignore',ext_ignore);
+elseif dwld>0
+    [dirs,files] = naif_archive_downloader(subdir_local,...
+        'Subdir_remote',subdir_remote,'BASENAMEPTRN',basenamePtr,...
+        'DWLD',dwld,'overwrite',overwrite, 'VERBOSE',verbose, ...
+        'INDEX_CACHE_UPDATE', index_cache_update);
+    
+    [fnames_mtch,regexp_out] = mtch_ptrn_fnamelist( ...
+        basenamePtr,files,'exact',mtch_exact, ...
+        'ext_ignore',ext_ignore);
 end
 end

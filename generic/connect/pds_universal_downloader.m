@@ -36,13 +36,10 @@ function [dirs,files] = pds_universal_downloader(subdir_local, ...
 %                         (default) 0
 %      'HTMLFILE'       : path to the html file to be read
 %                         (default) ''
-%      'OUT_FILE'       : path to the output file
-%                         (default) ''
 %      'VERBOSE'        : boolean, whether or not to show the downloading
 %                         operations.
 %                         (default) true
-%      'CAPITALIZE_FILENAME' : whether or not capitalize the filenames or
-%      not
+%      'CAPITALIZE_FILENAME' : whether or not capitalize the filenames or not
 %        (default) true
 %      'INDEX_CACHE_UPDATE' : boolean, whether or not to update index.html 
 %        (default) false
@@ -65,7 +62,6 @@ overwrite     = 0;
 dirskip       = 1;
 dwld          = 0;
 html_file     = '';
-outfile       = '';
 cap_filename  = true;
 index_cache_update = false;
 verbose = true;
@@ -91,8 +87,6 @@ else
                 html_file = varargin{i+1};
             case {'DWLD','DOWNLOAD'}
                 dwld = varargin{i+1};
-            case 'OUT_FILE'
-                outfile = varargin{i+1};
             case 'VERBOSE'
                 verbose = varargin{i+1};
             case 'CAPITALIZE_FILENAME'
@@ -129,16 +123,16 @@ end
 
 no_local_directory = false;
 
-url_local      = joinPath(url_local_root,subdir_local);
-localTargetDir = joinPath(localrootDir,url_local);
+url_local      = fullfile(url_local_root,subdir_local);
+localTargetDir = fullfile(localrootDir,url_local);
 if isempty(subdir_remote)
    subdir_remote = subdir_local;
-   url_remote = joinPath(url_remote_root, subdir_remote);
+   url_remote = joinPath_wSlash(url_remote_root, subdir_remote);
 else
     if isHTTP_fullpath(subdir_remote)
         url_remote = getURLfrom_HTTP_fullpath(subdir_remote);
     else
-        url_remote = joinPath(url_remote_root,subdir_remote);
+        url_remote = joinPath_wSlash(url_remote_root,subdir_remote);
     end
 end
 
@@ -198,7 +192,7 @@ dirs = []; files = [];
 
 errflg=0;
 if isempty(html_file)
-    html_cachefilepath = joinPath(localTargetDir,'index.html');
+    html_cachefilepath = fullfile(localTargetDir,'index.html');
     if ~index_cache_update && exist(html_cachefilepath,'file')
         html = fileread(html_cachefilepath);
     else
@@ -227,11 +221,11 @@ if isempty(html_file)
             end
         end
         % create the target directory and set 777
-        url_local_splt = split(url_local,'/');
+        url_local_splt = split(url_local,filesep);
         dcur = localrootDir;
         if ~exist(localTargetDir,'dir') % if the directory doesn't exist,
             for i=1:length(url_local_splt)
-                dcur = joinPath(dcur,url_local_splt{i});
+                dcur = fullfile(dcur,url_local_splt{i});
                 if ~exist(dcur,'dir')
                     [status] = mkdir(dcur);
                     if status
@@ -260,9 +254,7 @@ else
     end
 end
 % 
-if ~isempty(outfile)
-    fp = fopen(outfile,'a');
-end
+
 if ~errflg
     
     % get all the links
@@ -286,27 +278,27 @@ if ~errflg
             else
                 % recursively access the directory
                 if verbose
-                    fprintf('Going to %s\n',joinPath(subdir_local,dirname));
+                    fprintf('Going to %s\n',fullfile(subdir_local,dirname));
                 end
                 [dirs_ch,files_ch] = pds_universal_downloader(...
-                    joinPath(subdir_local,lnks(i).hyperlink),...
-                    'SUBDIR_REMOTE',joinPath(subdir_remote,dirname),...
+                    fullfile(subdir_local,lnks(i).hyperlink),...
+                    'SUBDIR_REMOTE',joinPath_wSlash(subdir_remote,dirname),...
                     'Basenameptrn',basenamePtrn,'EXT',ext,'dirskip',dirskip,...
                     'protocol',protocol,'overwrite',overwrite,'HTML_FILE',html_file,...
                     'dwld',dwld,'out_file',outfile,'CAPITALIZE_FILENAME',cap_filename, ...
                     'INDEX_CACHE_UPDATE',index_cache_update);
                 for ii=1:length(dirs_ch)
-                    dirs_ch{ii} = joinPath(dirname,dirs_ch{ii});
+                    dirs_ch{ii} = fullfile(dirname,dirs_ch{ii});
                 end
                 dirs = [dirs dirs_ch];
                 for ii=1:length(files_ch)
-                    files_ch{ii} = joinPath(dirname,files);
+                    files_ch{ii} = fullfile(dirname,files);
                 end
                 files = [files files_ch];
             end
         else
             filename = lnks(i).hyperlink;
-            remoteFile = [protocol '://' joinPath(url_remote,filename)];
+            remoteFile = [protocol '://' joinPath_wSlash(url_remote,filename)];
             if cap_filename
                 filename_local = upper(filename);
             else
@@ -320,7 +312,7 @@ if ~errflg
                 match_flg = 1;
                 
                 
-                localTarget = joinPath(localTargetDir,filename_local);
+                localTarget = fullfile(localTargetDir,filename_local);
                 
                 exist_idx = find(strcmpi(filename_local,fnamelist_local));
                 exist_flg = ~isempty(exist_idx);
@@ -340,7 +332,7 @@ if ~errflg
                                     fprintf('Overwriting..');
                                     for ii=1:length(exist_idx)
                                         exist_idx_ii = exist_idx(ii);
-                                        localExistFilePath = joinPath(localTargetDir,fnamelist_local{exist_idx_ii});
+                                        localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
                                         fprintf('Deleting %s ...\n',localExistFilePath);
                                         delete(localExistFilePath);
                                     end
@@ -365,13 +357,6 @@ if ~errflg
                                 fprintf('%s\n',remoteFile);
                             else
                                 fprintf('%s,%s\n',remoteFile,localTarget);
-                            end
-                            if ~isempty(outfile)
-                                if no_local_directory
-                                    fprintf(fp,'%s\n',remoteFile);
-                                else
-                                    fprintf(fp,'%s,%s\n',remoteFile,localTarget);
-                                end
                             end
                         end
                     case 0

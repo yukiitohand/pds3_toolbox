@@ -31,8 +31,6 @@ function [dirs,files] = naif_archive_downloader(subdir_local, varargin)
 %                         (default) 0
 %      'HTMLFILE'           : path to the html file to be read
 %                         (default) ''
-%      'OUT_FILE'       : path to the output file
-%                         (default) ''
 %      'VERBOSE'        : boolean, whether or not to show the downloading
 %                         operations.
 %                         (default) true

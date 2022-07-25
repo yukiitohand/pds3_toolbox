@@ -379,10 +379,6 @@ if ~errflg
     end
 end
 
-if ~isempty(outfile)
-    fclose(fp);
-end
-
 end
 
 function [err] = websavefile_multversion(remoteFile,localTarget)

@@ -41,8 +41,10 @@ function [dirs,files] = pds_universal_downloader(subdir_local, ...
 %                         (default) true
 %      'CAPITALIZE_FILENAME' : whether or not capitalize the filenames or not
 %        (default) true
-%      'INDEX_CACHE_UPDATE' : boolean, whether or not to update index.html 
+%      'INDEX_CACHE_UPDATE' : boolean, whether or not to update index file
 %        (default) false
+%      'INDEX_CACHE_FILENAME' : filename of the index file. 
+%        (default) 'index.html'
 %   Outputs
 %      dirs: cell array, list of dirs in the directory
 %      files: cell array, list of files downloaded
@@ -64,6 +66,7 @@ dwld          = 0;
 html_file     = '';
 cap_filename  = true;
 index_cache_update = false;
+index_cache_filename = 'index.html';
 verbose = true;
 
 if (rem(length(varargin),2)==1)
@@ -93,6 +96,8 @@ else
                 cap_filename = varargin{i+1};
             case 'INDEX_CACHE_UPDATE'
                 index_cache_update = varargin{i+1};
+            case 'INDEX_CACHE_FILENAME'
+                index_cache_filename = varargin{i+1};
             otherwise
                 error('Unrecognized option: %s', varargin{i});
         end
@@ -192,7 +197,7 @@ dirs = []; files = [];
 
 errflg=0;
 if isempty(html_file)
-    html_cachefilepath = fullfile(localTargetDir,'index.html');
+    html_cachefilepath = fullfile(localTargetDir,index_cache_filename);
     if ~index_cache_update && exist(html_cachefilepath,'file')
         html = fileread(html_cachefilepath);
     else

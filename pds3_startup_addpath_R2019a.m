@@ -58,7 +58,7 @@ end
 [envi_toolbox_dir,envi_toolbox_dirname,Nt] = get_toolbox_dirname(dList, ...
     'envi',error_if_not_unique,silent_if_not_unique);
 if Nt==1 && ~check_path_exist(envi_toolbox_dir, pathCell)
-    run(fullfile(envi_toolbox_dir,'envi_startup_addpath'));
+    run(fullfile(envi_toolbox_dir,'envi_startup_addpath_R2019a'));
 end
 
 %% pds3_toolbox
@@ -146,7 +146,7 @@ function [toolbox_dirpath,toolbox_dirname,Nt] = get_toolbox_dirname( ...
 %   toolbox_dirname: empty, char, cell array of chars.
 %     directory name of the toolbox (without versions if exists).
 %   Nt: number of toolboxes detected.
-%
+
     dirname_ptrn = sprintf('(?<toolbox_dirname>%s(-[\\d\\.]+){0,1}[%s]{0,1})',...
         toolbox_dirname_wover,filesep);
     mtch_toolbox_dirname = regexpi({dList.name},dirname_ptrn,'names');
@@ -181,7 +181,8 @@ function [toolbox_dirpath,toolbox_dirname,Nt] = get_toolbox_dirname( ...
             end
         end
     else % length(mtchidx)>1
-        toolbox_dirname = {cat(2,mtch_toolbox_dirname{mtchidx}).toolbox_dirname};
+        toolbox_dirname_struct = cat(2,mtch_toolbox_dirname{mtchidx});
+        toolbox_dirname = {toolbox_dirname_struct.toolbox_dirname};
         toolbox_dirpath = cellfun(@(x) fullfile(toolbox_root_dir,x), ...
             toolbox_dirname, 'UniformOutput',false);
         Nt = length(mtchidx);

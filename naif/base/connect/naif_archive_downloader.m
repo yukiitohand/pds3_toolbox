@@ -40,10 +40,13 @@ function [dirs,files] = naif_archive_downloader(subdir_local, varargin)
 %      dirs : cell array, list of dirs in the directory
 %      files: cell array, list of files downloaded
 
-global naif_archive_env_vars
-localrootDir    = naif_archive_env_vars.local_naif_archive_rootDir;
-url_local_root  = naif_archive_env_vars.naif_archive_root_URL;
-url_remote_root = naif_archive_env_vars.naif_archive_root_URL;
+global spicekrnl_env_vars
+if isempty(spicekrnl_env_vars)
+    error('Perform "spicekrnl_init" first.')
+end
+localrootDir    = spicekrnl_env_vars.local_SPICEkernel_archive_rootDir;
+url_local_root  = spicekrnl_env_vars.url_local_root;
+url_remote_root = spicekrnl_env_vars.url_remote_root;
 
 [dirs,files] = pds_universal_downloader(subdir_local, ...
     localrootDir, url_local_root, url_remote_root, @get_links_remoteHTML_naif_archive, ...

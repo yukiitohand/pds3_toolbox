@@ -12,8 +12,6 @@ subdir_remote = '';
 dwld = 0;
 mtch_exact = false;
 ext_ignore = true;
-force      = 0;
-outfile    = '';
 overwrite  = 0;
 get_latest = false;
 index_cache_update = false;
@@ -32,10 +30,6 @@ else
                 mtch_exact = varargin{i+1};
             case 'EXT_IGNORE'
                 ext_ignore = varargin{i+1};
-            case 'FORCE'
-                force = varargin{i+1};
-            case 'OUT_FILE'
-                outfile = varargin{i+1};
             case 'OVERWRITE'
                 overwrite = varargin{i+1};
             case 'INDEX_CACHE_UPDATE'
@@ -58,7 +52,7 @@ end
 %     error('%s does not exist.',dirpath);
 % end
 
-[fnames_mtch,regexp_out] = naif_readDownloadBasename(fname_ptrn, ...
+[fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename(fname_ptrn, ...
     subdir_local,subdir_remote,dwld, ...
     'ext_ignore',ext_ignore,'match_exact',mtch_exact, ...
     'overwrite',overwrite, ...

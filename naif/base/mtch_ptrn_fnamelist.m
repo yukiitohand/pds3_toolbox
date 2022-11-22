@@ -39,8 +39,7 @@ end
     if is_exact
         fname_ptrn = ['^' fname_ptrn '[[.][a-zA-Z]]*$'];
     end
-    [regexp_out] = cellfun(@(fname) regexpi(fname,fname_ptrn,'names'), ...
-        fnamelist,'UniformOutput',false);
+    [regexp_out] = regexpi(fnamelist,fname_ptrn,'names');
     mtch_idxes = ~isempties(regexp_out);
     regexp_out = regexp_out(mtch_idxes);
     fnames_mtch = fnamelist(mtch_idxes);

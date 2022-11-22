@@ -1,7 +1,11 @@
 {
-    "local_naif_archive_rootDir" : "~/data/",
-    "naif_archive_root_URL"      : "naif.jpl.nasa.gov/",
-    "NAIF_MROSPICE_subdir"       : "pub/naif/MRO/kernels/",
-    "NAIF_MROSPICE_pds_subdir"   : "pub/naif/pds/data/mro-m-spice-6-v1.0/mrosp_1000/data/",
-    "NAIF_GENERICSPICE_subdir"   : "pub/naif/generic_kernels/"
+    "local_SPICEkernel_archive_rootDir" : "~/data/",
+    "naif_URL"                  : "naif.jpl.nasa.gov/",
+    "NAIF_MROSPICE_subdir"      : "pub/naif/MRO/kernels/",
+    "NAIF_MROSPICE_pds_subdir"  : "pub/naif/pds/data/mro-m-spice-6-v1.0/mrosp_1000/data/",
+    "NAIF_GENERICSPICE_subdir"  : "pub/naif/generic_kernels/",
+    "local_fldsys"          : "naif",
+    "remote_fldsys"         : "naif",
+    "no_remote"             : 0,
+    "remote_protocol"       : "http",
 }

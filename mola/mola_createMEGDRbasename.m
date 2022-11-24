@@ -61,7 +61,7 @@ prop = [];
 prop.map_type_id = map_type_id;
 prop.latitude_ul = latitude_ul;
 prop.NS = NS;
-prop.logitude_ul = longitude_ul;
+prop.longitude_ul = longitude_ul;
 prop.map_resol_id = map_resol_id;
 prop.version = vr;
 

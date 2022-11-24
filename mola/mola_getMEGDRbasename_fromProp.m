@@ -23,7 +23,7 @@ function [basenameMEGDR] = mola_getMEGDRbasename_fromProp(prop)
 map_type_id  = prop.map_type_id;
 latitude_ul  = prop.latitude_ul;
 NS           = prop.NS;
-longitude_ul = prop.logitude_ul;
+longitude_ul = prop.longitude_ul;
 map_resol_id = prop.map_resol_id;
 vr           = prop.version;
 

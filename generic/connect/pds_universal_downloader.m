@@ -68,6 +68,7 @@ cap_filename  = true;
 index_cache_update = false;
 index_cache_filename = 'index.html';
 verbose = true;
+is_chmod777 = false;
 
 if (rem(length(varargin),2)==1)
     error('Optional parameters should always go by pairs');
@@ -98,6 +99,8 @@ else
                 index_cache_update = varargin{i+1};
             case 'INDEX_CACHE_FILENAME'
                 index_cache_filename = varargin{i+1};
+            case 'CHMOD777'
+                is_chmod777 = varargin{i+1};
             otherwise
                 error('Unrecognized option: %s', varargin{i});
         end
@@ -235,7 +238,9 @@ if isempty(html_file)
                     [status] = mkdir(dcur);
                     if status
                         if verbose, fprintf('"%s" is created.\n',dcur); end
-                        chmod777(dcur,verbose);
+                        if is_chmod777
+                            chmod777(dcur,verbose);
+                        end
                     else
                         error('Failed to create %s',dcur);
                     end
@@ -248,7 +253,9 @@ if isempty(html_file)
         fid_index = fopen(html_cachefilepath,'w');
         fwrite(fid_index,html);
         fclose(fid_index);
-        chmod777(html_cachefilepath,verbose);
+        if is_chmod777
+            chmod777(html_cachefilepath,verbose);
+        end
     end
 else
     if exist(html_file,'file')
@@ -287,17 +294,18 @@ if ~errflg
                 end
                 [dirs_ch,files_ch] = pds_universal_downloader(...
                     fullfile(subdir_local,lnks(i).hyperlink),...
+                    localrootDir, url_local_root, url_remote_root, @get_links_remoteHTML_pds_geosciences_node, ...
                     'SUBDIR_REMOTE',joinPath_wSlash(subdir_remote,dirname),...
                     'Basenameptrn',basenamePtrn,'EXT',ext,'dirskip',dirskip,...
                     'protocol',protocol,'overwrite',overwrite,'HTML_FILE',html_file,...
-                    'dwld',dwld,'out_file',outfile,'CAPITALIZE_FILENAME',cap_filename, ...
-                    'INDEX_CACHE_UPDATE',index_cache_update);
+                    'dwld',dwld,'CAPITALIZE_FILENAME',cap_filename, ...
+                    'INDEX_CACHE_UPDATE',index_cache_update,'INDEX_CACHE_FILENAME',index_cache_filename,'VERBOSE',verbose);
                 for ii=1:length(dirs_ch)
                     dirs_ch{ii} = fullfile(dirname,dirs_ch{ii});
                 end
                 dirs = [dirs dirs_ch];
                 for ii=1:length(files_ch)
-                    files_ch{ii} = fullfile(dirname,files);
+                    files_ch{ii} = fullfile(dirname,files_ch{ii});
                 end
                 files = [files files_ch];
             end
@@ -352,7 +360,9 @@ if ~errflg
                                     fprintf('......Download failed.\n');
                                 else
                                     fprintf('......Done!\n');
-                                    chmod777(localTarget,verbose);
+                                    if is_chmod777
+                                        chmod777(localTarget,verbose);
+                                    end
                                 end
                             end
                         end

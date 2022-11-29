@@ -1,9 +1,10 @@
-function [fname_slctd,vr_slctd] = spice_get_kernel(fname_ptrn,varargin)
+function [fname_slctd,vr_slctd] = spice_get_kernel(spicekrnl_env_vars,fname_ptrn,varargin)
 % [fname_slctd,vr_slctd] = spice_get_kernel(fname_ptrn,varargin)
 %  raw level function for interfacing getting the spice kernel files.
 % INPUTS
+%  spice_krnl_env_vars : struct storing environmental variable information
+%      on the spice kernel repository.
 %  fname_ptrn : char/string, needs to have (?<version>\d+)
-%  dirpath    : char/string, directory path for evaluating 
 % OUTPUTS
 %  fname_slctd : char/string, fname for the latest version
 %  vr_slctd    : double, version number
@@ -52,8 +53,8 @@ end
 %     error('%s does not exist.',dirpath);
 % end
 
-[fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename(fname_ptrn, ...
-    subdir_local,subdir_remote,dwld, ...
+[fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename( ...
+    spicekrnl_env_vars,fname_ptrn,subdir_local,subdir_remote,dwld, ...
     'ext_ignore',ext_ignore,'match_exact',mtch_exact, ...
     'overwrite',overwrite, ...
     'INDEX_CACHE_UPDATE',index_cache_update);

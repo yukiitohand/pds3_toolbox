@@ -1,20 +1,17 @@
-function [dirs,files] = naif_archive_downloader(subdir_local, varargin)
+function [dirs,files] = naif_archive_downloader(spicekrnl_env_vars,subdir_local, varargin)
 % [dirs,files] = pds_universal_downloader(subdir_local,varargin)
 % Get the all the files that match "basenamePtrn" in the specified
 % sub directory under pds-geoscience node.
 %
 % Inputs:
+%  spice_krnl_env_vars : struct storing environmental variable information
+%      on the spice kernel repository.
+%  subdir_local    : local sub directory path
+%
 % With these inputs, files that match [BASENAMEPTRN] at 
 %          [url_remote_root]/[subdir_remote] 
 % are saved to
 %          [localrootDir]/[url_local_root]/[subdir_local]
-%
-%  subdir_local    : local sub directory path
-%  localrootDir    : root directory path at the local computer
-%  url_local_root  : 
-%  url_remote_root : 
-%  func_getlnks    : function pointer that get links from the received html
-%                   file.
 %      
 %   Optional Parameters
 %      'SUBDIR_REMOTE   : (default) '' If empty, then SUBDIR_LOCAL is used.
@@ -40,7 +37,6 @@ function [dirs,files] = naif_archive_downloader(subdir_local, varargin)
 %      dirs : cell array, list of dirs in the directory
 %      files: cell array, list of files downloaded
 
-global spicekrnl_env_vars
 if isempty(spicekrnl_env_vars)
     error('Perform "spicekrnl_init" first.')
 end

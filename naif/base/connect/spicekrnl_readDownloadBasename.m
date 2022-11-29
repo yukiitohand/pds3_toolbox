@@ -1,9 +1,13 @@
-function [fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename(basenamePtr,subdir_local,subdir_remote,dwld,varargin)
-% [basename] = spicekrnl_readDownloadBasename(basenamePtr,local_dir,remote_subdir,dwld,varargin)
+function [fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename( ...
+    spicekrnl_env_vars,basenamePtr,subdir_local,subdir_remote,dwld,varargin)
+% [fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename( ...
+%     spicekrnl_env_vars,basenamePtr,subdir_local,subdir_remote,dwld,varargin)
 %    search basenames that match 'basenamePtr' in 'subdir_local' and return
 %    the actual name. If nothing can be found, then download any files that
 %    matches 'baenamePtr' from 'remote_subdir' depending on 'dwld' option.
 %  Input Parameters
+%    spicekrnl_env_vars: struct storing environmental variable information
+%      on the spice kernel repository.
 %    basenamePtr: regular expression to find a file with mathed basename.
 %    subdir_local: local sub-directory path to be searched 
 %    subdir_remote: remote_sudir to be searched (input to 'pds_downloader')
@@ -23,7 +27,6 @@ function [fnames_mtch,regexp_out] = spicekrnl_readDownloadBasename(basenamePtr,s
 %  Output parameters
 %    basename: real basename matched.
 
-global spicekrnl_env_vars
 localrootDir    = spicekrnl_env_vars.local_SPICEkernel_archive_rootDir;
 url_local_root  = spicekrnl_env_vars.url_local_root;
 no_remote      = spicekrnl_env_vars.no_remote;
@@ -98,7 +101,7 @@ if dwld<=0
                     fnamelist,'exact',mtch_exact,'ext_ignore',ext_ignore);
 
 elseif dwld>0
-    [dirs,files] = naif_archive_downloader(subdir_local,...
+    [dirs,files] = naif_archive_downloader(spicekrnl_env_vars,subdir_local,...
         'Subdir_remote',subdir_remote,'BASENAMEPTRN',basenamePtr,...
         'DWLD',dwld,'overwrite',overwrite, 'VERBOSE',verbose, ...
         'INDEX_CACHE_UPDATE', index_cache_update);

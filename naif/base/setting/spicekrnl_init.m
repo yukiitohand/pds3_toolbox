@@ -25,11 +25,7 @@ function spicekrnl_init(varargin)
     % no_remote is determined based on the presence of the field 
     % 'remote_fldsys', if it is not defined in the json file.
     if ~isfield(spicekrnl_env_vars,'no_remote')
-        if isfield(spicekrnl_env_vars,'remote_fldsys')
-            spicekrnl_env_vars.no_remote = false;
-        else
-            spicekrnl_env_vars.no_remote = true;
-        end
+        spicekrnl_env_vars.no_remote = false;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -39,10 +35,10 @@ function spicekrnl_init(varargin)
             [status] = mkdir(spicekrnl_env_vars.local_SPICEkernel_archive_rootDir);
             if status
                 fprintf('%s is created...\n',spicekrnl_env_vars.local_SPICEkernel_archive_rootDir);
-                [yesno777] = doyouwantto('change the permission to 777', '');
-                if yesno777
-                    chmod777(spicekrnl_env_vars.localCRISM_PDSrootDir,1);
-                end
+                % [yesno777] = doyouwantto('change the permission to 777', '');
+                % if yesno777
+                %     chmod777(spicekrnl_env_vars.localCRISM_PDSrootDir,1);
+                % end
             else
                 error('Failed to create %s', spicekrnl_env_vars.local_SPICEkernel_archive_rootDir);
             end
@@ -56,25 +52,16 @@ function spicekrnl_init(varargin)
             
     end
     
-    
     spicekrnl_env_vars.url_local_root = spicekrnl_env_vars.([spicekrnl_env_vars.local_fldsys '_URL']);
     spicekrnl_env_vars.url_local_root = fullfile(spicekrnl_env_vars.url_local_root);
 
-    if spicekrnl_env_vars.no_remote
-        if isfield(spicekrnl_env_vars,'remote_fldsys') && ~isempty(spicekrnl_env_vars.remote_fldsys)
-            fprintf('remote_fldsys is defined, but will not be used because no_remote=1\n');
-        end
-    else
+    if ~spicekrnl_env_vars.no_remote
         % remote_protocol is set to 'http' if not defined in the json file.
         if ~isfield(spicekrnl_env_vars,'remote_protocol')
             spicekrnl_env_vars.remote_protocol = 'http';
         end
-        if isfield(spicekrnl_env_vars,'remote_fldsys') && ~isempty(spicekrnl_env_vars.remote_fldsys)
-            spicekrnl_env_vars.url_remote_root = spicekrnl_env_vars.([spicekrnl_env_vars.remote_fldsys '_URL']);
-            spicekrnl_env_vars.url_remote_root = crism_swap_to_remote_path(spicekrnl_env_vars.url_remote_root);
-        else
-            error('Define remote_fldsys is the json file, since no_remote=0\n');
-        end
+        spicekrnl_env_vars.url_remote_root = spicekrnl_env_vars.([spicekrnl_env_vars.fldsys '_URL']);
+        spicekrnl_env_vars.url_remote_root = crism_swap_to_remote_path(spicekrnl_env_vars.url_remote_root);
     end
 
 end

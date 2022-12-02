@@ -42,8 +42,12 @@ else
         fname_wext = fnamelist(matching);
         basenameList = cell(1,length(fname_wext));
         for i=1:length(fname_wext)
-            [~,basename,ext] = fileparts(fname_wext{i});
-            basenameList{i} = basename;            
+            basename = fname_wext{i};
+            dot_pos = strfind(basename,'.');
+            % [~,basename,ext] = fileparts(fname_wext{i});
+            if ~isempty(dot_pos) && dot_pos(end)>1, basenameList{i} = basename(1:(dot_pos(end)-1));
+            else, basenameList{i} = basename;
+            end     
         end
         basename = unique(basenameList);
         if ~celloutput && length(basename)==1

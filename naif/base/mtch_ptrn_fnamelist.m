@@ -39,7 +39,7 @@ end
     if is_exact
         fname_ptrn = ['^' fname_ptrn '[[.][a-zA-Z]]*$'];
     end
-    [regexp_out] = regexpi(fnamelist,fname_ptrn,'names');
+    [regexp_out] = regexpi(fnamelist,fname_ptrn,'names','once');
     mtch_idxes = ~isempties(regexp_out);
     regexp_out = regexp_out(mtch_idxes);
     fnames_mtch = fnamelist(mtch_idxes);
@@ -48,8 +48,13 @@ end
         if ext_ignore
             fnames_mtch_ei = cell(1,length(fnames_mtch));
             for i=1:length(fnames_mtch)
-                [~,basename,ext] = fileparts(fnames_mtch{i});
-                fnames_mtch_ei{i} = basename;            
+                basename = fnames_mtch{i};
+                dot_pos = strfind(basename,'.');
+                if ~isempty(dot_pos) && dot_pos(end)>1, fnames_mtch_ei{i} = basename(1:(dot_pos(end)-1));
+                else, fnames_mtch_ei{i} = basename;
+                end 
+                % [~,basename,ext] = fileparts(fnames_mtch{i});
+                % fnames_mtch_ei{i} = basename;            
             end
             [fnames_mtch_ei,ia,ic] = unique(fnames_mtch_ei);
             fnames_mtch = fnames_mtch_ei;

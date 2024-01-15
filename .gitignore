@@ -1,4 +1,5 @@
 # ignore all MATLAB temporary files
+*.DS_Store
 *.m~
 *.asv
 **/fort.6

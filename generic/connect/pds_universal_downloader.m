@@ -65,6 +65,7 @@ dirskip       = 1;
 dwld          = 0;
 html_file     = '';
 cap_filename  = true;
+noindex = false;
 index_cache_update = false;
 index_cache_filename = 'index.html';
 verbose = true;
@@ -95,6 +96,8 @@ else
                 verbose = varargin{i+1};
             case 'CAPITALIZE_FILENAME'
                 cap_filename = varargin{i+1};
+            case 'NOINDEX'
+                noindex = varargin{i+1};
             case 'INDEX_CACHE_UPDATE'
                 index_cache_update = varargin{i+1};
             case 'INDEX_CACHE_FILENAME'
@@ -199,7 +202,7 @@ end
 dirs = []; files = [];
 
 errflg=0;
-if isempty(html_file)
+if isempty(html_file) && ~noindex
     html_cachefilepath = fullfile(localTargetDir,index_cache_filename);
     if ~index_cache_update && exist(html_cachefilepath,'file')
         html = fileread(html_cachefilepath);
@@ -214,7 +217,7 @@ if isempty(html_file)
             ntrial = 1; % number of trial to retrieve the url
             while ~errflg
                 try
-                    options = weboptions('ContentType','text','Timeout',60);
+                    options = weboptions('ContentType','text','Timeout',inf);
                     http_url = [protocol '://' url_remote];
                     [html] = webread(http_url,options);
                     break;
@@ -260,7 +263,7 @@ if isempty(html_file)
 else
     if exist(html_file,'file')
         html = fileread(html_file);
-    else
+    elseif ~noindex
         warning('html_file %s does not exist.',html_file);
         errflg = true;
     end
@@ -268,128 +271,213 @@ end
 % 
 
 if ~errflg
-    
-    % get all the links
-    [lnks] = func_getlnks(html);
-    if isempty(lnks)
-        fprintf("No files/directories found. Updating cache file may solve the problem.\n")
-    end
-    % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
-    fnamelist_local = dir(localTargetDir);
-    fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
-    match_flg = 0;
-    for i=1:length(lnks)
-        if any(strcmpi(lnks(i).type,{'PARENTDIR','To Parent Directory'})) ...
-                || ( isfield(lnks(i),'text') && strcmpi(lnks(i).text,'Parent Directory') )
-            % skip if it is 'PARENTDIR'
-        elseif strcmpi(lnks(i).type,'DIR')
-            dirname = lnks(i).hyperlink;
-            dirs = [dirs {dirname}];
-            if dirskip
-               % skip
-            else
-                % recursively access the directory
-                if verbose
-                    fprintf('Going to %s\n',fullfile(subdir_local,dirname));
+    if noindex
+        % create the target directory and set 777
+        url_local_splt = split(url_local,filesep);
+        dcur = localrootDir;
+        if ~exist(localTargetDir,'dir') % if the directory doesn't exist,
+            for i=1:length(url_local_splt)
+                dcur = fullfile(dcur,url_local_splt{i});
+                if ~exist(dcur,'dir')
+                    [status] = mkdir(dcur);
+                    if status
+                        if verbose, fprintf('"%s" is created.\n',dcur); end
+                        if is_chmod777
+                            chmod777(dcur,verbose);
+                        end
+                    else
+                        error('Failed to create %s',dcur);
+                    end
                 end
-                [dirs_ch,files_ch] = pds_universal_downloader(...
-                    fullfile(subdir_local,lnks(i).hyperlink),...
-                    localrootDir, url_local_root, url_remote_root, @get_links_remoteHTML_pds_geosciences_node, ...
-                    'SUBDIR_REMOTE',joinPath_wSlash(subdir_remote,dirname),...
-                    'Basenameptrn',basenamePtrn,'EXT',ext,'dirskip',dirskip,...
-                    'protocol',protocol,'overwrite',overwrite,'HTML_FILE',html_file,...
-                    'dwld',dwld,'CAPITALIZE_FILENAME',cap_filename, ...
-                    'INDEX_CACHE_UPDATE',index_cache_update,'INDEX_CACHE_FILENAME',index_cache_filename,'VERBOSE',verbose);
-                for ii=1:length(dirs_ch)
-                    dirs_ch{ii} = fullfile(dirname,dirs_ch{ii});
-                end
-                dirs = [dirs dirs_ch];
-                for ii=1:length(files_ch)
-                    files_ch{ii} = fullfile(dirname,files_ch{ii});
-                end
-                files = [files files_ch];
             end
+        end
+        fnamelist_local = dir(localTargetDir);
+        fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
+        filename = basenamePtrn;
+        if cap_filename
+            filename_local = upper(filename);
         else
-            filename = lnks(i).hyperlink;
-            remoteFile = [protocol '://' joinPath_wSlash(url_remote,filename)];
-            if cap_filename
-                filename_local = upper(filename);
-            else
-                filename_local = filename;
-            end
-            [~,~,ext_filename] = fileparts(filename);
-            % Proceed if the filename matches the ptrn and extension
-            % matches
-            if ~isempty(regexpi(filename,basenamePtrn,'ONCE')) ...
-                && ( isempty(ext) || ( ~isempty(ext) && any(strcmpi(ext_filename,ext)) ) )
-                match_flg = 1;
-                
-                
-                localTarget = fullfile(localTargetDir,filename_local);
-                
-                exist_idx = find(strcmpi(filename_local,fnamelist_local));
-                exist_flg = ~isempty(exist_idx);
-                
-                switch dwld
-                    case 2
-                        if exist_flg && ~overwrite
-                            % Skip downloading
-                            if verbose
-                                fprintf('Exist: %s\n',localTarget);
-                                fprintf('Skip downloading\n');
+            filename_local = filename;
+        end
+        remoteFile  = [protocol '://' joinPath_wSlash(url_remote,filename)];
+        localTarget = fullfile(localTargetDir,filename_local);
+        exist_idx = find(strcmpi(filename_local,fnamelist_local));
+        exist_flg = ~isempty(exist_idx);
+        switch dwld
+            case 2
+                if exist_flg && ~overwrite
+                    % Skip downloading
+                    if verbose
+                        fprintf('Exist: %s\n',localTarget);
+                        fprintf('Skip downloading\n');
+                    end
+                else
+                    if exist_flg && overwrite
+                        if verbose
+                            fprintf('Exist: %s\n',localTarget);
+                            fprintf('Overwriting..');
+                            for ii=1:length(exist_idx)
+                                exist_idx_ii = exist_idx(ii);
+                                localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
+                                fprintf('Deleting %s ...\n',localExistFilePath);
+                                delete(localExistFilePath);
                             end
+                        end
+                    end
+                    if verbose
+                        fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
+                    end
+                    [err] = websavefile_multversion(remoteFile,localTarget);
+                    if verbose
+                        if err
+                            fprintf('......Download failed.\n');
                         else
-                            if exist_flg && overwrite
+                            fprintf('......Done!\n');
+                            if is_chmod777
+                                chmod777(localTarget,verbose);
+                            end
+                        end
+                    end
+                end
+            case 1
+                if verbose
+                    if no_local_directory
+                        fprintf('%s\n',remoteFile);
+                    else
+                        fprintf('%s,%s\n',remoteFile,localTarget);
+                    end
+                end
+            case 0
+                if verbose
+                    fprintf('Nothing happens with dwld=0\n');
+                end
+            otherwise
+                error('dwld=%d is not defined\n',dwld);
+        end
+        files = [files {filename_local}];
+    else
+        % get all the links
+        [lnks] = func_getlnks(html);
+        if isempty(lnks)
+            fprintf("No files/directories found. Updating cache file may solve the problem.\n")
+        end
+        % [lnks] = get_links_remoteHTML_pds_geosciences_node(html);
+        fnamelist_local = dir(localTargetDir);
+        fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
+        match_flg = 0;
+        for i=1:length(lnks)
+            if any(strcmpi(lnks(i).type,{'PARENTDIR','To Parent Directory'})) ...
+                    || ( isfield(lnks(i),'text') && strcmpi(lnks(i).text,'Parent Directory') )
+                % skip if it is 'PARENTDIR'
+            elseif strcmpi(lnks(i).type,'DIR')
+                dirname = lnks(i).hyperlink;
+                dirs = [dirs {dirname}];
+                if dirskip
+                   % skip
+                else
+                    % recursively access the directory
+                    if verbose
+                        fprintf('Going to %s\n',fullfile(subdir_local,dirname));
+                    end
+                    [dirs_ch,files_ch] = pds_universal_downloader(...
+                        fullfile(subdir_local,lnks(i).hyperlink),...
+                        localrootDir, url_local_root, url_remote_root, func_getlnks, ...
+                        'SUBDIR_REMOTE',joinPath_wSlash(subdir_remote,dirname),...
+                        'Basenameptrn',basenamePtrn,'EXT',ext,'dirskip',dirskip,...
+                        'protocol',protocol,'overwrite',overwrite,'HTML_FILE',html_file,...
+                        'dwld',dwld,'CAPITALIZE_FILENAME',cap_filename, ...
+                        'INDEX_CACHE_UPDATE',index_cache_update,'INDEX_CACHE_FILENAME',index_cache_filename,'VERBOSE',verbose);
+                    for ii=1:length(dirs_ch)
+                        dirs_ch{ii} = fullfile(dirname,dirs_ch{ii});
+                    end
+                    dirs = [dirs dirs_ch];
+                    for ii=1:length(files_ch)
+                        files_ch{ii} = fullfile(dirname,files_ch{ii});
+                    end
+                    files = [files files_ch];
+                end
+            else
+                filename = lnks(i).hyperlink;
+                remoteFile = [protocol '://' joinPath_wSlash(url_remote,filename)];
+                if cap_filename
+                    filename_local = upper(filename);
+                else
+                    filename_local = filename;
+                end
+                [~,~,ext_filename] = fileparts(filename);
+                % Proceed if the filename matches the ptrn and extension
+                % matches
+                if ~isempty(regexpi(filename,basenamePtrn,'ONCE')) ...
+                    && ( isempty(ext) || ( ~isempty(ext) && any(strcmpi(ext_filename,ext)) ) )
+                    match_flg = 1;
+                    
+                    
+                    localTarget = fullfile(localTargetDir,filename_local);
+                    
+                    exist_idx = find(strcmpi(filename_local,fnamelist_local));
+                    exist_flg = ~isempty(exist_idx);
+                    
+                    switch dwld
+                        case 2
+                            if exist_flg && ~overwrite
+                                % Skip downloading
                                 if verbose
                                     fprintf('Exist: %s\n',localTarget);
-                                    fprintf('Overwriting..');
-                                    for ii=1:length(exist_idx)
-                                        exist_idx_ii = exist_idx(ii);
-                                        localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
-                                        fprintf('Deleting %s ...\n',localExistFilePath);
-                                        delete(localExistFilePath);
-                                    end
+                                    fprintf('Skip downloading\n');
                                 end
-                            end
-                            if verbose
-                                fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
-                            end
-                            [err] = websavefile_multversion(remoteFile,localTarget);
-                            if verbose
-                                if err
-                                    fprintf('......Download failed.\n');
-                                else
-                                    fprintf('......Done!\n');
-                                    if is_chmod777
-                                        chmod777(localTarget,verbose);
-                                    end
-                                end
-                            end
-                        end
-                    case 1
-                        if verbose
-                            if no_local_directory
-                                fprintf('%s\n',remoteFile);
                             else
-                                fprintf('%s,%s\n',remoteFile,localTarget);
+                                if exist_flg && overwrite
+                                    if verbose
+                                        fprintf('Exist: %s\n',localTarget);
+                                        fprintf('Overwriting..');
+                                        for ii=1:length(exist_idx)
+                                            exist_idx_ii = exist_idx(ii);
+                                            localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
+                                            fprintf('Deleting %s ...\n',localExistFilePath);
+                                            delete(localExistFilePath);
+                                        end
+                                    end
+                                end
+                                if verbose
+                                    fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
+                                end
+                                [err] = websavefile_multversion(remoteFile,localTarget);
+                                if verbose
+                                    if err
+                                        fprintf('......Download failed.\n');
+                                    else
+                                        fprintf('......Done!\n');
+                                        if is_chmod777
+                                            chmod777(localTarget,verbose);
+                                        end
+                                    end
+                                end
                             end
-                        end
-                    case 0
-                        if verbose
-                            fprintf('Nothing happens with dwld=0\n');
-                        end
-                    otherwise
-                        error('dwld=%d is not defined\n',dwld);
+                        case 1
+                            if verbose
+                                if no_local_directory
+                                    fprintf('%s\n',remoteFile);
+                                else
+                                    fprintf('%s,%s\n',remoteFile,localTarget);
+                                end
+                            end
+                        case 0
+                            if verbose
+                                fprintf('Nothing happens with dwld=0\n');
+                            end
+                        otherwise
+                            error('dwld=%d is not defined\n',dwld);
+                    end
+                    
+                    files = [files {filename_local}];
                 end
-                
-                files = [files {filename_local}];
+    
+            end   
+        end
+        if match_flg==0
+            if verbose
+                fprintf('No file matches %s in %s.\n',basenamePtrn,subdir_remote);
             end
-
-        end   
-    end
-    if match_flg==0
-        if verbose
-            fprintf('No file matches %s in %s.\n',basenamePtrn,subdir_remote);
         end
     end
 end

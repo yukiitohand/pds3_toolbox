@@ -43,6 +43,7 @@ subdir_remote = '';
 overwrite     = 0;
 dirskip       = 1;
 dwld          = 0;
+capitalize_filename = true;
 html_file     = '';
 protocol      = 'https';
 index_cache_update = false;
@@ -70,6 +71,8 @@ else
                 html_file = varargin{i+1};
             case {'DWLD','DOWNLOAD'}
                 dwld = varargin{i+1};
+            case 'CAPITALIZE_FILENAME'
+                capitalize_filename = varargin{i+1};
             case 'INDEX_CACHE_UPDATE'
                 index_cache_update = varargin{i+1};
             case 'VERBOSE'
@@ -83,12 +86,12 @@ else
 end
 % 
 
-url_remote_root = crism_swap_to_remote_path(url_remote_root);
+% url_remote_root = crism_swap_to_remote_path(url_remote_root);
 index_cache_fname = 'index.html';
 [dirs,files] = pds_universal_downloader(subdir_local, ...
     localrootDir, url_local_root, url_remote_root, @get_links_remoteHTML_pds_geosciences_node, ...
     'BASENAMEPTRN',basenamePtrn,'SUBDIR_REMOTE',subdir_remote, ...
-    'CAPITALIZE_FILENAME', true,'VERBOSE',verbose,'EXT',ext,'DIRSKIP',dirskip, ...
+    'CAPITALIZE_FILENAME', capitalize_filename,'VERBOSE',verbose,'EXT',ext,'DIRSKIP',dirskip, ...
     'protocol',protocol,'overwrite',overwrite,'dwld',dwld, ...
     'HTML_FILE', html_file, 'CHMOD777',is_chmod777, ...
     'INDEX_CACHE_UPDATE',index_cache_update,'INDEX_CACHE_FILENAME',index_cache_fname);

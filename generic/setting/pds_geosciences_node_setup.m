@@ -1,6 +1,6 @@
 function pds_geosciences_node_setup()
     global pds_geosciences_node_env_vars
-    str = fileread('pds_geoscience_node.json');
+    str = fileread('pds_geosciences_node.json');
     pds_geosciences_node_env_vars = jsondecode(str);
     
     check_mkdir(pds_geosciences_node_env_vars.local_pds_geosciences_node_rootDir);

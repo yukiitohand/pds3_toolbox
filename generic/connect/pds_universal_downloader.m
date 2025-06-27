@@ -134,7 +134,7 @@ end
 
 no_local_directory = false;
 
-url_local      = fullfile(url_local_root,subdir_local);
+url_local = fullfile(url_local_root,subdir_local);
 localTargetDir = fullfile(localrootDir,url_local);
 if isempty(subdir_remote)
    subdir_remote = subdir_local;
@@ -272,89 +272,119 @@ end
 
 if ~errflg
     if noindex
-        % create the target directory and set 777
-        url_local_splt = split(url_local,filesep);
-        dcur = localrootDir;
-        if ~exist(localTargetDir,'dir') % if the directory doesn't exist,
-            for i=1:length(url_local_splt)
-                dcur = fullfile(dcur,url_local_splt{i});
-                if ~exist(dcur,'dir')
-                    [status] = mkdir(dcur);
-                    if status
-                        if verbose, fprintf('"%s" is created.\n',dcur); end
-                        if is_chmod777
-                            chmod777(dcur,verbose);
-                        end
-                    else
-                        error('Failed to create %s',dcur);
-                    end
+        filename = basenamePtrn;
+        remoteFile  = [protocol '://' joinPath_wSlash(url_remote,filename)];
+        
+        % first check the existence of the local file
+        if exist(localTargetDir, 'dir')
+            fnamelist_local = dir(localTargetDir);
+            fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
+            exist_idx = find(strcmpi(filename,fnamelist_local));
+            exist_flg = ~isempty(exist_idx);
+        else
+            exist_flg = false;
+        end
+        
+        % check if the target exists without downloading data.
+        request = matlab.net.http.RequestMessage;
+        request.Method = 'HEAD';
+        options = matlab.net.http.HTTPOptions('ConnectTimeout',20);
+        [response, ~, ~] = request.send(remoteFile, options);
+        if response.StatusCode == matlab.net.http.StatusCode.NotFound
+            url_valid = false;
+        else
+            url_valid = true;
+        end
+        
+        if url_valid
+            % create the target directory and set 777
+            status_mkdir = rmkdir(url_local, 'Parent', localrootDir, 'CHMOD777', is_chmod777,'verbose',verbose);
+%             url_local_splt = split(url_local,filesep);
+%             dcur = localrootDir;
+%             if ~exist(localTargetDir,'dir') % if the directory doesn't exist,
+%                 for i=1:numel(url_local_splt)
+%                     dcur = fullfile(dcur,url_local_splt{i});
+%                     if ~exist(dcur,'dir')
+%                         [status] = mkdir(dcur);
+%                         if status
+%                             if verbose, fprintf('"%s" is created.\n',dcur); end
+%                             if is_chmod777
+%                                 chmod777(dcur,verbose);
+%                             end
+%                         else
+%                             error('Failed to create %s',dcur);
+%                         end
+%                     end
+%                 end
+%             end
+            
+            if status_mkdir == 0
+                if cap_filename
+                    filename_local = upper(filename);
+                else
+                    filename_local = filename;
                 end
+                localTarget = fullfile(localTargetDir,filename_local);
+        
+                switch dwld
+                    case 2
+                        if exist_flg && ~overwrite
+                            % Skip downloading
+                            if verbose
+                                fprintf('Exist: %s\n',localTarget);
+                                fprintf('Skip downloading\n');
+                            end
+                        else
+                            if exist_flg && overwrite
+                                if verbose
+                                    fprintf('Exist: %s\n',localTarget);
+                                    fprintf('Overwriting..');
+                                end
+                                % Delete the file.
+                                for ii=1:length(exist_idx)
+                                    exist_idx_ii = exist_idx(ii);
+                                    localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
+                                    if verbose
+                                        fprintf('Deleting %s ...\n',localExistFilePath);
+                                    end
+                                    delete(localExistFilePath);
+                                end
+                            end
+                            if verbose
+                                fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
+                            end
+                            [err] = websavefile_multversion(remoteFile,localTarget);
+                            if verbose
+                                if err
+                                    fprintf('......Download failed.\n');
+                                else
+                                    fprintf('......Done!\n');
+                                end
+                            end
+                            if ~err
+                                if is_chmod777
+                                   chmod777(localTarget,verbose);
+                                end
+                            end
+                        end
+                    case 1
+                        if verbose
+                            if no_local_directory
+                                fprintf('%s\n',remoteFile);
+                            else
+                                fprintf('%s,%s\n',remoteFile,localTarget);
+                            end
+                        end
+                    case 0
+                        if verbose
+                            fprintf('Nothing happens with dwld=0\n');
+                        end
+                    otherwise
+                        error('dwld=%d is not defined\n',dwld);
+                end
+                files = [files {filename_local}];
             end
         end
-        fnamelist_local = dir(localTargetDir);
-        fnamelist_local = {fnamelist_local(~[fnamelist_local.isdir]).name};
-        filename = basenamePtrn;
-        if cap_filename
-            filename_local = upper(filename);
-        else
-            filename_local = filename;
-        end
-        remoteFile  = [protocol '://' joinPath_wSlash(url_remote,filename)];
-        localTarget = fullfile(localTargetDir,filename_local);
-        exist_idx = find(strcmpi(filename_local,fnamelist_local));
-        exist_flg = ~isempty(exist_idx);
-        switch dwld
-            case 2
-                if exist_flg && ~overwrite
-                    % Skip downloading
-                    if verbose
-                        fprintf('Exist: %s\n',localTarget);
-                        fprintf('Skip downloading\n');
-                    end
-                else
-                    if exist_flg && overwrite
-                        if verbose
-                            fprintf('Exist: %s\n',localTarget);
-                            fprintf('Overwriting..');
-                            for ii=1:length(exist_idx)
-                                exist_idx_ii = exist_idx(ii);
-                                localExistFilePath = fullfile(localTargetDir,fnamelist_local{exist_idx_ii});
-                                fprintf('Deleting %s ...\n',localExistFilePath);
-                                delete(localExistFilePath);
-                            end
-                        end
-                    end
-                    if verbose
-                        fprintf(['Copy\t' remoteFile '\n\t-->\t' localTarget '\n']);
-                    end
-                    [err] = websavefile_multversion(remoteFile,localTarget);
-                    if verbose
-                        if err
-                            fprintf('......Download failed.\n');
-                        else
-                            fprintf('......Done!\n');
-                            if is_chmod777
-                                chmod777(localTarget,verbose);
-                            end
-                        end
-                    end
-                end
-            case 1
-                if verbose
-                    if no_local_directory
-                        fprintf('%s\n',remoteFile);
-                    else
-                        fprintf('%s,%s\n',remoteFile,localTarget);
-                    end
-                end
-            case 0
-                if verbose
-                    fprintf('Nothing happens with dwld=0\n');
-                end
-            otherwise
-                error('dwld=%d is not defined\n',dwld);
-        end
-        files = [files {filename_local}];
     else
         % get all the links
         [lnks] = func_getlnks(html);

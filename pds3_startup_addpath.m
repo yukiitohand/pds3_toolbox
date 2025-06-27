@@ -75,6 +75,9 @@ if ~check_path_exist(pds3_toolbox_dir, pathCell)
 
     cmp_arch = computer('arch');
     switch cmp_arch
+        case 'maca64'
+            % For Mac computers
+            pds3_mex_build_path = fullfile(pds3_toolbox_dir,'mex_build','maca64');
         case 'maci64'
             % For Mac computers
             pds3_mex_build_path = fullfile(pds3_toolbox_dir,'mex_build','maci64');
